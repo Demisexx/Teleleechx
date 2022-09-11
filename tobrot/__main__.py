@@ -273,6 +273,7 @@ if __name__ == "__main__":
         a.add_handler(MessageHandler(anilist_set, filters=filters.command(["anime_template", f"anime_template@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(nyaa_search, filters=filters.command(['nyaasi', f'nyaasi@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(nyaa_search_sukebei, filters=filters.command(['sukebei', f'sukebei@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
+        a.add_handler(MessageHandler(picture_add, filters=filters.command(['addpic', f'addpic@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
 
         a.add_handler(CallbackQueryHandler(anilist_callbackquery, filters=filters.regex(pattern="^(tags|stream|reviews|relations|characters|home)")))
         a.add_handler(CallbackQueryHandler(imdb_callback, filters=filters.regex(pattern="^imdb")))
