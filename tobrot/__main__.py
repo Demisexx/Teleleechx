@@ -26,7 +26,8 @@ from tobrot import HEROKU_API_KEY, HEROKU_APP_NAME, app, bot, __version__
 from tobrot import OWNER_ID, SUDO_USERS, AUTH_CHANNEL, DOWNLOAD_LOCATION, GET_SIZE_G, GLEECH_COMMAND, \
                    GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, LOGGER, RENEWME_COMMAND, TELEGRAM_LEECH_UNZIP_COMMAND, \
                    TELEGRAM_LEECH_COMMAND, UPLOAD_COMMAND, GYTDL_COMMAND, GPYTDL_COMMAND, RCLONE_COMMAND, \
-                   UPDATES_CHANNEL, LEECH_LOG, STRING_SESSION, SET_BOT_COMMANDS, RDM_QUOTE, INDEX_SCRAPE, TIMEZONE
+                   UPDATES_CHANNEL, LEECH_LOG, STRING_SESSION, SET_BOT_COMMANDS, RDM_QUOTE, INDEX_SCRAPE, TIMEZONE \
+                   AUTO_LEECH
 if STRING_SESSION:
     from tobrot import userBot
 from tobrot.helper_funcs.download import down_load_media_f
@@ -232,8 +233,8 @@ if __name__ == "__main__":
                 ])
             & filters.chat(chats=AUTH_CHANNEL),
         ))
-        # AUTO_LEECH = True !!
-        # a.add_handler(MessageHandler(incoming_message_f, filters=filters.text & filters.chat(chats=AUTH_CHANNEL)))
+        if AUTO_LEECH:
+            a.add_handler(MessageHandler(incoming_message_f, filters=filters.text & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(down_load_media_f, filters=filters.command([TELEGRAM_LEECH_COMMAND, f"{TELEGRAM_LEECH_COMMAND}@{username}", TELEGRAM_LEECH_UNZIP_COMMAND, f"{TELEGRAM_LEECH_UNZIP_COMMAND}@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(incoming_purge_message_f, filters=filters.command(["purge", f"purge@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(g_clonee, filters=filters.command([f"{BotCommands.GCloneCommand}", f"{BotCommands.GCloneCommand}@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
