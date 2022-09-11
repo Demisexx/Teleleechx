@@ -253,6 +253,7 @@ LEECH_INVITE = getVar("LEECH_INVITE", "False")
 EX_LEECH_LOG = [int(chats) if (' ' not in getVar('EX_LEECH_LOG', '')) else int(chats) for chats in getVar('EX_LEECH_LOG', '').split()]
 EXCEP_CHATS = getVar("EXCEP_CHATS", "")
 BOT_PM = getVar("BOT_PM", False)
+AUTO_LEECH = getVar("AUTO_LEECH", False)
 PICS_LIST = (getVar("PICS", "")).split()
 
 # 4 GB Upload Utils >>>>>>>>>>>
@@ -263,7 +264,7 @@ PRM_LOG = getVar("PRM_LOG", "") #Optional
 BOT_THEME = getVar("BOT_THEME", "fx-optimised-theme")
 
 # ForceSubscribe [ Channel ] >>>>>>>>
-FSUB_CHANNEL = getVar("FSUB_CHANNEL", "") #Do Not Put this Now
+FSUB_CHANNEL = getVar("FSUB_CHANNEL", "")
 
 # Quotes in Restart Message & Utils >>>>>>>>
 TIMEZONE = getVar("TIMEZONE", "Asia/Kolkata")
