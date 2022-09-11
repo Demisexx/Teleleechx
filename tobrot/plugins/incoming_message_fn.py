@@ -14,17 +14,19 @@ from requests import get as rget
 from asyncio import sleep as asleep
 from urllib.parse import unquote, quote
 
-from pyrogram import enums
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import enums, Client
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
-from tobrot import DOWNLOAD_LOCATION, CLONE_COMMAND_G, GLEECH_COMMAND, GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, LOGGER, GPYTDL_COMMAND, STATUS_COMMAND, UPDATES_CHANNEL, LEECH_LOG, BOT_PM, EXCEP_CHATS, app, FSUB_CHANNEL, USER_DTS
+from tobrot import DOWNLOAD_LOCATION, CLONE_COMMAND_G, GLEECH_COMMAND, GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, \
+                   LOGGER, GPYTDL_COMMAND, STATUS_COMMAND, UPDATES_CHANNEL, LEECH_LOG, BOT_PM, EXCEP_CHATS, app, \
+                   FSUB_CHANNEL, USER_DTS, AUTO_LEECH
 from tobrot import bot, EDIT_SLEEP_TIME_OUT
 from tobrot.helper_funcs.display_progress import humanbytes, TimeFormatter
 from tobrot.helper_funcs.bot_commands import BotCommands
 from tobrot.helper_funcs.admin_check import AdminCheck
 from tobrot.helper_funcs.cloneHelper import CloneHelper
 from tobrot.helper_funcs.download import download_tg
-from tobrot.helper_funcs.download_aria_p_n import aria_start, call_apropriate_function
+from tobrot.helper_funcs.download_aria_p_n import aria_start, call_apropriate_function, __sendSpecificLogMsg
 from tobrot.helper_funcs.extract_link_from_message import extract_link
 from tobrot.helper_funcs.upload_to_tg import upload_to_tg
 from tobrot.helper_funcs.youtube_dl_extractor import extract_youtube_dl_formats
@@ -33,7 +35,7 @@ from tobrot.plugins import getDetails, getUserOrChaDetails, getUserName
 from tobrot.plugins.force_sub_handler import handle_force_sub
 from tobrot.bot_theme.themes import BotTheme
 
-async def incoming_purge_message_f(client, message):
+async def incoming_purge_message_f(client: Client, message: Message):
     msg = await message.reply_text("Purging...", quote=True)
     if await AdminCheck(client, message.chat.id, message.from_user.id):
         aria_i_p = await aria_start()
@@ -44,25 +46,13 @@ async def incoming_purge_message_f(client, message):
     await asleep(EDIT_SLEEP_TIME_OUT)
     await msg.delete()
 
-async def incoming_message_f(client, message):
-    """/leech command or /gleech command"""
-    user_command = message.command[0]
-    g_id, tag_me = getUserOrChaDetails(message)
-    txtCancel = False
-
-    if FSUB_CHANNEL:
-        LOGGER.info("[ForceSubscribe] Initiated")
-        backCode = await handle_force_sub(client, message)
-        if backCode == 400:
-            LOGGER.info(f"[ForceSubscribe] User Not In {FSUB_CHANNEL}")
-            return
-
-    if BOT_PM and message.chat.type != enums.ChatType.PRIVATE and str(message.chat.id) not in str(EXCEP_CHATS):
+async def check_bot_pm(client: Client, message: Message):
+    if message.chat.type != enums.ChatType.PRIVATE and str(message.chat.id) not in str(EXCEP_CHATS):
         LOGGER.info("[Bot PM] Initiated")
         try:
-            msg1 = f'Leech Started !!'
-            send = await client.send_message(message.from_user.id, text=msg1)
+            send = await client.send_message(message.from_user.id, text='Leech Started !!')
             await send.delete()
+            return True
         except Exception as e:
             LOGGER.warning(e)
             uname = f'<a href="tg://user?id={g_id}">{tag_me}</a>'
@@ -73,8 +63,26 @@ async def incoming_message_f(client, message):
             startwarn = f"Dear {uname},\n\n<b>I found that you haven't Started me in PM (Private Chat) yet.</b>\n\n" \
                         f"From Now on, Links and Leeched Files in PM and Log Channel Only !!"
             message = await message.reply_text(text=startwarn, parse_mode=enums.ParseMode.HTML, quote=True, reply_markup=button_markup)
+            return False
+
+async def incoming_message_f(client: Client, message: Message):
+    """/leech command or /gleech command"""
+    if not AUTO_LEECH:
+        user_command = message.command[0]
+    g_id, tag_me = getUserOrChaDetails(message)
+    txtCancel = False
+
+    if FSUB_CHANNEL:
+        LOGGER.info("[ForceSubscribe] Initiated")
+        backCode = await handle_force_sub(client, message)
+        if backCode == 400:
+            LOGGER.info(f"[ForceSubscribe] User Not In {FSUB_CHANNEL}")
             return
-    rpy_mssg_id = None
+
+    if BOT_PM: 
+        if not (await check_bot_pm(client, message)):
+            return
+
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Leech')
         link_text = await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
@@ -91,7 +99,9 @@ async def incoming_message_f(client, message):
     is_file = False
     dl_url = ''
     cf_name = ''
-    if rep_mess := message.reply_to_message:
+    if AUTO_LEECH:
+        dl_url, cf_name, _, _ = await extract_link(message, "LEECH")
+    elif rep_mess := message.reply_to_message:
         file_name = ''
         if rep_mess.media:
             file = [rep_mess.document, rep_mess.video, rep_mess.audio]
@@ -185,9 +195,8 @@ async def incoming_message_f(client, message):
 
 async def incoming_youtube_dl_f(client, message):
     current_user_id, u_men = getUserOrChaDetails(message)
-    credit = await message.reply_text(
-        f"<b><i>🛃 Working For 🛃:</i></b> {u_men}", parse_mode=enums.ParseMode.HTML
-    )
+    text__, txtCancel = getDetails(client, message, 'yt-dlp')
+    link_text = await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
     i_m_sefg = await message.reply_text("<code>Prrocessing...🔃</code>", quote=True)
     if message.reply_to_message:
         dl_url, cf_name, yt_dl_user_name, yt_dl_pass_word = await extract_link(
@@ -258,8 +267,13 @@ async def g_yt_playlist(client, message):
     else:
         await message.reply_text("<b>YouTube playlist link only 🙄</b>", quote=True)
 
-async def g_clonee(client, message):
+async def g_clonee(client: Client, message: Message):
     g_id, _ = getUserOrChaDetails(message)
+
+    if BOT_PM: 
+        if not (await check_bot_pm(client, message)):
+            return
+
     _link = message.text.split(" ", maxsplit=1)
     reply_to = message.reply_to_message
     if len(_link) > 1:
@@ -294,10 +308,23 @@ __Google Drive, GDToT, AppDrive, Kolop, HubDrive, DriveLinks__'''
         )
 
 
-async def rename_tg_file(client, message):
+async def rename_tg_file(client: Client, message: Message):
     usr_id, tag_me = getUserOrChaDetails(message)
-    text__, _ = getDetails(client, message, 'Rename')
-    await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
+    if USER_DTS:
+        text__, txtCancel = getDetails(client, message, 'Rename')
+        await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
+        endText = f"\n📬 <b>Source :</b> <a href='{message.link}'>Click Here</a>\n\n#LeechStart #FXLogs"
+        if not txtCancel:
+            if LEECH_LOG:
+                text__ += endText
+                logs_msg = await client.send_message(chat_id=int(LEECH_LOG), text=text__, parse_mode=enums.ParseMode.HTML, disable_web_page_preview=True)
+                rpy_mssg_id = logs_msg.id
+            LOGGER.info(f"Leech Started : {tag_me}")
+
+    if BOT_PM: 
+        if not (await check_bot_pm(client, message)):
+            return
+
     if not message.reply_to_message:
         await message.reply("<b>⚠️ Opps ⚠️</b>\n\n <b><i>⊠ Reply with Telegram Media (File / Video)⁉️</b>", quote=True)
         return
@@ -345,9 +372,7 @@ async def rename_tg_file(client, message):
                 )
             if message_to_send == "":
                 message_to_send = "<i>FAILED</i> \n\nCheck Logs and Try Again Later !!. "
-            await message.reply_text(
-                text=mention_req_user + message_to_send + message_credits, quote=True, disable_web_page_preview=True
-            )
+            await __sendSpecificLogMsg(client, message, mention_req_user, message_to_send, message_credits, rpy_mssg_id)
         except Exception as pe:
             LOGGER.info(pe)
 
