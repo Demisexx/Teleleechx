@@ -21,6 +21,7 @@ psycopg2-binary
 pycountry
 pyrogram
 python-dotenv
+pytz
 pyprog
 python-telegram-bot
 pybase64
