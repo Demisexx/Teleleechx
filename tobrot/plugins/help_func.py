@@ -181,18 +181,17 @@ async def pictures(client: Client, message: Message):
     else:
         to_edit = await message.reply_text("Generating Grid of your Images...")
         btn = [
-            [InlineKeyboardButton("<<", callback_data="pic -1"),
-            InlineKeyboardButton(">>", callback_data="pic 1")],
+            [InlineKeyboardButton(">>", callback_data="pic 1")],
             [InlineKeyboardButton("Remove Photo", callback_data="picsremove 0")]
         ]
         await to_edit.delete()
-        await message.reply_photo(photo=PICS_LIST[0], reply_markup=InlineKeyboardMarkup(btn))
+        await message.reply_photo(photo=PICS_LIST[0], caption=f'• Picture No. : 1 / {len(PICS_LIST)}', reply_markup=InlineKeyboardMarkup(btn))
 
 async def pics_callback(client: Client, query: CallbackQuery):
     if query.data.startswith("pic"):
         getData = (query.data).split()
         ind = int(getData[1])
-        pic_info = f'• Picture No. : {ind+1} / {len(PICS)}'
+        pic_info = f'• Picture No. : {ind+1} / {len(PICS_LIST)}'
         btns = [
             [InlineKeyboardButton("<<", callback_data=f"pic {ind-1}"),
             InlineKeyboardButton(">>", callback_data=f"pic {ind+1}")],
