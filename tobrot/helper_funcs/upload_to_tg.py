@@ -172,7 +172,6 @@ async def upload_to_tg(
                 ] = sent_message.id
             else:
                 return
-    # await message.delete()
     return dict_contatining_uploaded_files
 
 

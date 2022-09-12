@@ -19,7 +19,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from tobrot import DOWNLOAD_LOCATION, CLONE_COMMAND_G, GLEECH_COMMAND, GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, \
                    LOGGER, GPYTDL_COMMAND, STATUS_COMMAND, UPDATES_CHANNEL, LEECH_LOG, BOT_PM, EXCEP_CHATS, app, \
-                   FSUB_CHANNEL, USER_DTS, AUTO_LEECH
+                   FSUB_CHANNEL, USER_DTS, AUTO_LEECH, RCLONE_CONF_URL
 from tobrot import bot, EDIT_SLEEP_TIME_OUT
 from tobrot.helper_funcs.display_progress import humanbytes, TimeFormatter
 from tobrot.helper_funcs.bot_commands import BotCommands
@@ -273,7 +273,9 @@ async def g_clonee(client: Client, message: Message):
     if BOT_PM: 
         if not (await check_bot_pm(client, message)):
             return
-
+    if (not RCLONE_CONF_URL):
+        LOGGER.info("[RCLONE] RCLONE_CONF_URL not Provided !!")
+        return
     _link = message.text.split(" ", maxsplit=1)
     reply_to = message.reply_to_message
     if len(_link) > 1:
