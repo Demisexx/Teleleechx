@@ -145,9 +145,11 @@ async def picture_add(client: Client, message: Message):
     '''/addpic command'''
     editable = await message.reply_text("Checking Input ...")
     resm = message.reply_to_message
-    if resm.text.startswith("http"):
-        pic_add = resm.text.stripe()
-        await editable.edit("Adding your Link ...")
+    msg_text = resm.text
+    if msg_text:
+        if msg_text.startswith("http"):
+            pic_add = msg_text.stripe()
+            await editable.edit("Adding your Link ...")
     elif resm.photo:
         if not ((resm.photo and resm.photo.file_size <= TGH_LIMIT)):
             await editable.edit("This Media is Not Supported! Only Send Photos !!")
@@ -165,6 +167,8 @@ async def picture_add(client: Client, message: Message):
             await editable.edit(err)
         finally:
             os.remove(df)
+    else:
+        await editable.edit("Provide Some Photos!! Bruh Photo or DDL Links.")
     PICS_LIST.append(pic_add)
     await editable.delete()
     message.reply_text("Added to Existing Random Pictures Status List!")
