@@ -181,7 +181,8 @@ async def pictures(client: Client, message: Message):
     else:
         to_edit = await message.reply_text("Generating Grid of your Images...")
         btn = [
-            [InlineKeyboardButton(">>", callback_data="pic 1")],
+            [InlineKeyboardButton("<<", callback_data=f"pic -1"),
+            InlineKeyboardButton(">>", callback_data="pic 1")],
             [InlineKeyboardButton("Remove Photo", callback_data="picsremove 0")]
         ]
         await to_edit.delete()
@@ -189,17 +190,19 @@ async def pictures(client: Client, message: Message):
 
 async def pics_callback(client: Client, query: CallbackQuery):
     if query.data.startswith("pic"):
+        if query.data.startswith("picsremove"):
+            getData = (query.data).split()
+            index = int(getData[1])
+            PICS_LIST.pop(index)
+            await query.edit_message_media(media=InputMediaPhoto(media="https://te.legra.ph/file/06dbd8fb0628b8ba4ab45.png", caption="Removed from Existing Random Pictures Status List !!"))
+            return
         getData = (query.data).split()
         ind = int(getData[1])
-        pic_info = f'• Picture No. : {ind+1} / {len(PICS_LIST)}'
+        if ind < 0: ind = len(PICS_LIST) - abs(ind)
+        pic_info = f'🌄 <b>Picture No. : {ind+1} / {len(PICS_LIST)}</b>'
         btns = [
             [InlineKeyboardButton("<<", callback_data=f"pic {ind-1}"),
             InlineKeyboardButton(">>", callback_data=f"pic {ind+1}")],
             [InlineKeyboardButton("Remove Photo", callback_data=f"picsremove {ind}")]
         ]
         await query.edit_message_media(media=InputMediaPhoto(media=PICS_LIST[ind], caption=pic_info), reply_markup=InlineKeyboardMarkup(btns))
-    elif query.data.startswith("picsremove"):
-        getData = (query.data).split()
-        index = int(getData[1])
-        PICS_LIST.pop(index)
-        await query.edit_message_media(media=InputMediaPhoto(media="https://te.legra.ph/file/06dbd8fb0628b8ba4ab45.png", caption="Removed from Existing Random Pictures Status List !!"))
