@@ -172,13 +172,12 @@ async def picture_add(client: Client, message: Message):
         await editable.edit("Provide Some Photos!! Bruh Photo or DDL Links.")
     PICS_LIST.append(pic_add)
     asleep(1.5)
-    await editable.delete()
-    await message.reply_text("Added to Existing Random Pictures Status List!")
+    await editable.edit("Added to Existing Random Pictures Status List!")
 
 async def pictures(client: Client, message: Message):
     '''/pics command'''
     if not PICS_LIST:
-        await message.reply_text("Add Some Photos to Let me Show you !!")
+        await message.reply_text("Add Some Photos OR use API to Let me Show you !!")
     else:
         to_edit = await message.reply_text("Generating Grid of your Images...")
         btn = [
@@ -191,7 +190,5 @@ async def pictures(client: Client, message: Message):
         #("Removed from Existing Random Pictures Status List!")
 
 #async def pics_callback(client: Client, query: CallbackQuery):
-    #if query.data.startswith("pics"):
-        
-    
-
+#    if query.data.startswith("pics"):
+#        getData = (query.data).split()
