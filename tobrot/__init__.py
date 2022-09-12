@@ -255,6 +255,7 @@ EXCEP_CHATS = getVar("EXCEP_CHATS", "")
 BOT_PM = getVar("BOT_PM", False)
 AUTO_LEECH = getVar("AUTO_LEECH", False)
 PICS_LIST = (getVar("PICS", "")).split()
+PIXABAY_API_KEY = getVar("PIXABAY_API_KEY", "")
 
 # 4 GB Upload Utils >>>>>>>>>>>
 PRM_USERS = getVar("PRM_USERS", "") #Optional 
