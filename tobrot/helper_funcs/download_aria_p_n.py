@@ -237,7 +237,7 @@ async def call_apropriate_function(
     is_file,
     user_message,
     client,
-    rpy_mssg_id
+    rpy_mssg_id=None
 ):
     if not is_file:
 
@@ -350,11 +350,14 @@ async def call_apropriate_function(
                 LOGGER.error(go)
     return True, None
 
-async def __sendSpecificLogMsg(client, user_message, req, send, cred, rpy_mssg_id):
+async def __sendSpecificLogMsg(client, user_message, req, send, cred, rpy_mssg_id=None):
     if LEECH_LOG and str(user_message.chat.id) not in str(EXCEP_CHATS):
         log_txt = "┃ <b>🖨 Requested Leeched File are Sent to User PM.</b>\n"
         if BOT_PM: log_txt += "┃ <b>♻️ File(s) are Uploaded on Leech Log Channel, Check Down View.</b>\n"
-        leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, reply_to_message_id=rpy_mssg_id, parse_mode=enums.ParseMode.HTML)
+        if rpy_mssg_id:
+            leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, reply_to_message_id=rpy_mssg_id, parse_mode=enums.ParseMode.HTML)
+        else:
+           leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, parse_mode=enums.ParseMode.HTML) 
         inbtns = [
             [InlineKeyboardButton("Gᴇᴛ Lᴇᴇᴄʜᴇᴅ Fɪʟᴇs", url=leech_msg.link)]
         ]

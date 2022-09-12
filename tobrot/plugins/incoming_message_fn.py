@@ -312,6 +312,7 @@ __Google Drive, GDToT, AppDrive, Kolop, HubDrive, DriveLinks__'''
 
 async def rename_tg_file(client: Client, message: Message):
     usr_id, tag_me = getUserOrChaDetails(message)
+    
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Rename')
         await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
