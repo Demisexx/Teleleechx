@@ -7,6 +7,7 @@
 # This is Part of < https://github.com/5MysterySD/Tele-LeechX >
 # All Right Reserved
 
+from asyncio import sleep as asleep
 from os import path as opath, remove as oremove
 from time import time
 from telegraph import upload_file
@@ -148,7 +149,7 @@ async def picture_add(client: Client, message: Message):
     msg_text = resm.text
     if msg_text:
         if msg_text.startswith("http"):
-            pic_add = msg_text.stripe()
+            pic_add = msg_text.strip()
             await editable.edit("Adding your Link ...")
     elif resm.photo:
         if not ((resm.photo and resm.photo.file_size <= TGH_LIMIT)):
@@ -170,15 +171,27 @@ async def picture_add(client: Client, message: Message):
     else:
         await editable.edit("Provide Some Photos!! Bruh Photo or DDL Links.")
     PICS_LIST.append(pic_add)
+    asleep(1.5)
     await editable.delete()
-    message.reply_text("Added to Existing Random Pictures Status List!")
+    await message.reply_text("Added to Existing Random Pictures Status List!")
 
-async def picture_rm(client: Client, message: Message):
-    '''/rmpic command'''
-    to_edit = await message.reply_text("Finding your Image ...")
-    
-    
-    await to_edit.edit("Removed from Existing Random Pictures Status List!")
+async def pictures(client: Client, message: Message):
+    '''/pics command'''
+    if not PICS_LIST:
+        await message.reply_text("Add Some Photos to Let me Show you !!")
+    else:
+        to_edit = await message.reply_text("Generating Grid of your Images...")
+        btn = [
+            [InlineKeyboardButton("<<", callback_data="pic pre -1"),
+            InlineKeyboardButton(">>", callback_data="pic nex 1")],
+            [InlineKeyboardButton("Remove Photo", callback_data="pic remove")]
+        ]
+        await to_edit.delete()
+        await message.reply_photo(photo=PICS_LIST[0], reply_markup=InlineKeyboardMarkup(btn))
+        #("Removed from Existing Random Pictures Status List!")
 
+#async def pics_callback(client: Client, query: CallbackQuery):
+    #if query.data.startswith("pics"):
+        
     
 
