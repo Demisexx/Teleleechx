@@ -47,7 +47,7 @@ from tobrot.plugins.choose_rclone_config import rclone_command_f
 from tobrot.plugins.custom_thumbnail import clear_thumb_nail, save_thumb_nail
 from tobrot.plugins.incoming_message_fn import g_clonee, g_yt_playlist, incoming_message_f, incoming_purge_message_f, \
                                                incoming_youtube_dl_f, rename_tg_file
-from tobrot.plugins.help_func import help_message_f, stats, user_settings, settings_callback, picture_add, pictures
+from tobrot.plugins.help_func import help_message_f, stats, user_settings, settings_callback, picture_add, pictures, pics_callback
 from tobrot.plugins.speedtest import get_speed
 from tobrot.plugins.mediainfo import mediainfo
 from tobrot.plugins.rclone_size import check_size_g, g_clearme
@@ -294,6 +294,7 @@ if __name__ == "__main__":
         a.add_handler(CallbackQueryHandler(anilist_callbackquery, filters=filters.regex(pattern="^(tags|stream|reviews|relations|characters|home)")))
         a.add_handler(CallbackQueryHandler(imdb_callback, filters=filters.regex(pattern="^imdb")))
         a.add_handler(CallbackQueryHandler(settings_callback, filters=filters.regex(pattern="^showthumb")))
+        a.add_handler(CallbackQueryHandler(pics_callback, filters=filters.regex(pattern="^pic")))
         a.add_handler(CallbackQueryHandler(nyaa_nop, filters=filters.regex(pattern="nyaa_nop")))
         a.add_handler(CallbackQueryHandler(nyaa_callback, filters=filters.regex(pattern="nyaa_back|nyaa_next")))
         a.add_handler(CallbackQueryHandler(button))
