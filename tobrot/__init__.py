@@ -254,8 +254,12 @@ EX_LEECH_LOG = [int(chats) if (' ' not in getVar('EX_LEECH_LOG', '')) else int(c
 EXCEP_CHATS = getVar("EXCEP_CHATS", "")
 BOT_PM = getVar("BOT_PM", False)
 AUTO_LEECH = getVar("AUTO_LEECH", False)
+
+#Status Photos & Pixabay API >>>>>>>>>>
 PICS_LIST = (getVar("PICS", "")).split()
 PIXABAY_API_KEY = getVar("PIXABAY_API_KEY", "")
+PIXABAY_CATEGORY = getVar("PIXABAY_CATEGORY", "")
+PIXABAY_SEARCH = getVar("PIXABAY_SEARCH", "")
 
 # 4 GB Upload Utils >>>>>>>>>>>
 PRM_USERS = getVar("PRM_USERS", "") #Optional 
