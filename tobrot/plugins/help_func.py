@@ -198,8 +198,8 @@ async def pics_callback(client: Client, query: CallbackQuery):
             return
         getData = (query.data).split()
         ind = int(getData[1])
-        if ind < 0: ind = len(PICS_LIST) - abs(ind)
-        pic_info = f'🌄 <b>Picture No. : {ind+1} / {len(PICS_LIST)}</b>'
+        no = len(PICS_LIST) - abs(ind+1) if ind < 0 else ind + 1
+        pic_info = f'🌄 <b>Picture No. : {no} / {len(PICS_LIST)}</b>'
         btns = [
             [InlineKeyboardButton("<<", callback_data=f"pic {ind-1}"),
             InlineKeyboardButton(">>", callback_data=f"pic {ind+1}")],
