@@ -55,10 +55,10 @@ async def check_bot_pm(client: Client, message: Message):
             return True
         except Exception as e:
             LOGGER.warning(e)
-            uname = f'<a href="tg://user?id={g_id}">{tag_me}</a>'
+            uname = message.from_user.mention
             username = await getUserName()
             button_markup = InlineKeyboardMarkup([
-                    [InlineKeyboardButton("⚡️ Click Here to Start Me ⚡️", url=f"http://t.me/{username[0]}")]
+                    [InlineKeyboardButton("⚡️ Click Here to Start Me ⚡️", url=f"http://t.me/{username[0]}")] # Still a Bug !!
                 ])
             startwarn = f"Dear {uname},\n\n<b>I found that you haven't Started me in PM (Private Chat) yet.</b>\n\n" \
                         f"From Now on, Links and Leeched Files in PM and Log Channel Only !!"
