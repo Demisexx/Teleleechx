@@ -172,7 +172,7 @@ async def status_message_f(client: Client, message: Message):
         if msg == "":
             msg = (BotTheme(u_id_)).DEF_STATUS_MSG
             msg = mssg + "\n" + msg + "\n" + ms_g
-            if PICS_LIST: await client.edit_message_media(chat_id=to_edit.chat.id, message_id=to_edit.id, media=InputMediaPhoto(media=choice(PICS_LIST), caption=msg), reply_markup=button_markup)
+            if PICS_LIST: await to_edit.edit_caption(caption=msg, reply_markup=button_markup)
             else: await to_edit.edit(msg, reply_markup=button_markup)
             await asleep(EDIT_SLEEP_TIME_OUT)
             await to_edit.delete()
@@ -189,7 +189,7 @@ async def status_message_f(client: Client, message: Message):
         else:
             if msg != prev_mess:
                 try:
-                    if PICS_LIST: await to_edit.edit_caption(caption=msg, parse_mode=enums.ParseMode.HTML, reply_markup=button_markup)
+                    if PICS_LIST: await client.edit_message_media(chat_id=to_edit.chat.id, message_id=to_edit.id, media=InputMediaPhoto(media=choice(PICS_LIST), caption=msg), parse_mode=enums.ParseMode.HTML, reply_markup=button_markup)
                     else: await to_edit.edit(msg, parse_mode=enums.ParseMode.HTML, reply_markup=button_markup)
                 except MessageIdInvalid:
                     break
