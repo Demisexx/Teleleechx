@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
 <b>📆 𝘿𝙖𝙩𝙚 :</b> <code>{date}</code> 
 <b>⏰ 𝙏𝙞𝙢𝙚 :</b> <code>{time}</code>
-<b>🚦 𝙏𝙞𝙢𝙚𝙕𝙤𝙣𝙚 :</b> <code>{TIMEZONE}</code>
+<b>🚧 𝙏𝙞𝙢𝙚𝙕𝙤𝙣𝙚 :</b> <code>{TIMEZONE}</code>
 
 <b>ℹ️ 𝙑𝙚𝙧𝙨𝙞𝙤𝙣 :</b> <code>{__version__}</code>'''
             if RDM_QUOTE:
@@ -305,9 +305,9 @@ if __name__ == "__main__":
  / / / -_) / -_)___/ /__/ -_) -_) __/ _ \_>  <  
 /_/  \__/_/\__/   /____/\__/\__/\__/_//_/_/|_|''')
     for a in app:
-        logging.info(f"{(a.get_me()).first_name} [@{(a.get_me()).username}] Has Started Running...🏃💨💨")
+        logging.info(f"{(a.get_me()).first_name} [@{(a.get_me()).username}] has Started Running...🏃💨💨")
     if STRING_SESSION:
-        logging.info(f"User : {(userBot.get_me()).first_name} Has Started Revolving...♾️⚡️")
+        logging.info(f"User : {(userBot.get_me()).first_name} has Started Revolving...♾️⚡️")
 
     idle()
 
