@@ -82,9 +82,11 @@ async def incoming_message_f(client: Client, message: Message):
             LOGGER.info(f"[ForceSubscribe] User Not In {FSUB_CHANNEL}")
             return
 
-    if BOT_PM: 
+    if BOT_PM and LEECH_LOG:
         if not (await check_bot_pm(client, message)):
             return
+    elif BOT_PM and (not LEECH_LOG):
+        LOGGER.warning("[Bot PM] Must Provide LEECH_LOG to Use it")
 
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Leech')
@@ -273,9 +275,12 @@ async def g_yt_playlist(client, message):
 async def g_clonee(client: Client, message: Message):
     g_id, _ = getUserOrChaDetails(message)
 
-    if BOT_PM: 
+    if BOT_PM and LEECH_LOG: 
         if not (await check_bot_pm(client, message)):
             return
+    elif BOT_PM and (not LEECH_LOG):
+        LOGGER.warning("[Bot PM] Must Provide LEECH_LOG to Use it")
+
     if (not RCLONE_CONF_URL):
         LOGGER.info("[RCLONE] RCLONE_CONF_URL not Provided !!")
         return
@@ -315,9 +320,11 @@ __Google Drive, GDToT, AppDrive, Kolop, HubDrive, DriveLinks__'''
 
 async def rename_tg_file(client: Client, message: Message):
     usr_id, tag_me = getUserOrChaDetails(message)
-    if BOT_PM: 
+    if BOT_PM and LEECH_LOG:
         if not (await check_bot_pm(client, message)):
             return
+    elif BOT_PM and (not LEECH_LOG):
+        LOGGER.warning("[Bot PM] Must Provide LEECH_LOG to Use it")
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Rename')
         await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
