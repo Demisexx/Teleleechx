@@ -46,7 +46,7 @@ from tobrot.plugins.choose_rclone_config import rclone_command_f
 from tobrot.plugins.custom_thumbnail import clear_thumb_nail, save_thumb_nail
 from tobrot.plugins.incoming_message_fn import g_clonee, g_yt_playlist, incoming_message_f, incoming_purge_message_f, \
                                                incoming_youtube_dl_f, rename_tg_file
-from tobrot.plugins.help_func import help_message_f, stats, user_settings, settings_callback, picture_add
+from tobrot.plugins.help_func import help_message_f, stats, user_settings, settings_callback, picture_add, pictures
 from tobrot.plugins.speedtest import get_speed
 from tobrot.plugins.mediainfo import mediainfo
 from tobrot.plugins.rclone_size import check_size_g, g_clearme
