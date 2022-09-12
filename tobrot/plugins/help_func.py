@@ -7,7 +7,7 @@
 # This is Part of < https://github.com/5MysterySD/Tele-LeechX >
 # All Right Reserved
 
-from os import path as opath
+from os import path as opath, remove as oremove
 from time import time
 from telegraph import upload_file
 from subprocess import check_output
@@ -166,7 +166,7 @@ async def picture_add(client: Client, message: Message):
         except Exception as err:
             await editable.edit(err)
         finally:
-            os.remove(df)
+            oremove(df)
     else:
         await editable.edit("Provide Some Photos!! Bruh Photo or DDL Links.")
     PICS_LIST.append(pic_add)
