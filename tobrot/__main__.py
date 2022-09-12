@@ -26,7 +26,8 @@ from tobrot import HEROKU_API_KEY, HEROKU_APP_NAME, app, bot, __version__
 from tobrot import OWNER_ID, SUDO_USERS, AUTH_CHANNEL, DOWNLOAD_LOCATION, GET_SIZE_G, GLEECH_COMMAND, \
                    GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, LOGGER, RENEWME_COMMAND, TELEGRAM_LEECH_UNZIP_COMMAND, \
                    TELEGRAM_LEECH_COMMAND, UPLOAD_COMMAND, GYTDL_COMMAND, GPYTDL_COMMAND, RCLONE_COMMAND, \
-                   UPDATES_CHANNEL, LEECH_LOG, STRING_SESSION, SET_BOT_COMMANDS, RDM_QUOTE, INDEX_SCRAPE, TIMEZONE, AUTO_LEECH
+                   UPDATES_CHANNEL, LEECH_LOG, STRING_SESSION, SET_BOT_COMMANDS, RDM_QUOTE, INDEX_SCRAPE, TIMEZONE, \
+                   AUTO_LEECH, PICS_LIST, PIXABAY_API_KEY
 if STRING_SESSION:
     from tobrot import userBot
 from tobrot.helper_funcs.download import down_load_media_f
@@ -176,6 +177,17 @@ if __name__ == "__main__":
     # Start The Bot >>>>>>>
     for a in app:
         a.start()
+
+    # Pixabay API >>>>>>>>
+    if PIXABAY_API_KEY:
+        try:
+            resp = rget(f"https://pixabay.com/api/?key={PIXABAY_API_KEY}&image_type=all&orientation=horizontal&min_width=1280&min_height=720&per_page=200&safesearch=true&editors_choice=true")
+            jdata = resp.json()
+            for x in range(0, 200):
+                largeImageURL = jdata['hits'][x]['largeImageURL']
+                PICS_LIST.append(largeImageURL)
+        except Exception as err:
+            LOGGER.INFO(f"Pixabay API Error: {err}")
 
     # Bot Restart & Restart Message >>>>>>>>
     curr = datetime.now(timezone(TIMEZONE))
