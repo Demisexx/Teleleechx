@@ -60,8 +60,11 @@ async def check_bot_pm(client: Client, message: Message):
             button_markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("⚡️ Click Here to Start Me ⚡️", url=f"http://t.me/{username[0]}")] # Still a Bug !!
                 ])
-            startwarn = f"Dear {uname},\n\n<b>I found that you haven't Started me in PM (Private Chat) yet.</b>\n\n" \
-                        f"From Now on, Links and Leeched Files in PM and Log Channel Only !!"
+            startwarn = f'''┏ Dear {uname},
+┃
+┣ <b>Bot is Not Started in PM (Private Chat) yet.</b>
+┃
+┗ <i>From Now on, Links and Leeched Files in PM and Log Channel Only !!</i>'''
             message = await message.reply_text(text=startwarn, parse_mode=enums.ParseMode.HTML, quote=True, reply_markup=button_markup)
             return False
 
@@ -312,7 +315,9 @@ __Google Drive, GDToT, AppDrive, Kolop, HubDrive, DriveLinks__'''
 
 async def rename_tg_file(client: Client, message: Message):
     usr_id, tag_me = getUserOrChaDetails(message)
-    
+    if BOT_PM: 
+        if not (await check_bot_pm(client, message)):
+            return
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Rename')
         await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
@@ -323,10 +328,6 @@ async def rename_tg_file(client: Client, message: Message):
                 logs_msg = await client.send_message(chat_id=int(LEECH_LOG), text=text__, parse_mode=enums.ParseMode.HTML, disable_web_page_preview=True)
                 rpy_mssg_id = logs_msg.id
             LOGGER.info(f"Leech Started : {tag_me}")
-
-    if BOT_PM: 
-        if not (await check_bot_pm(client, message)):
-            return
 
     if not message.reply_to_message:
         await message.reply("<b>⚠️ Opps ⚠️</b>\n\n <b><i>⊠ Reply with Telegram Media (File / Video)⁉️</b>", quote=True)
