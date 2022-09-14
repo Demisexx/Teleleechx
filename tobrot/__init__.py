@@ -82,7 +82,7 @@ IMDB_TEMPLATE = {}
 ANILIST_TEMPLATE = {}
 USER_THEMES = {}
 AVAILABLE_THEMES = {}
-__version__ = "2.8.2"
+__version__ = "2.8.3"
 
 TG_BOT_TOKEN, APP_ID, API_HASH = [], [], []
 
