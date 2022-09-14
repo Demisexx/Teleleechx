@@ -17,7 +17,7 @@ from functools import partial
 from pathlib import Path
 from requests import utils, get as rget
 
-from pyrogram import enums
+from pyrogram import enums, Client
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 from hurry.filesize import size
@@ -26,8 +26,10 @@ from pyrogram.errors import FloodWait, MessageNotModified
 from pyrogram.types import InputMediaAudio, InputMediaDocument, InputMediaVideo
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from tobrot import DESTINATION_FOLDER, DOWNLOAD_LOCATION, EDIT_SLEEP_TIME_OUT, INDEX_LINK, VIEW_LINK, LOGGER, TG_MAX_FILE_SIZE, UPLOAD_AS_DOC, \
-                   CAP_STYLE, CUSTOM_CAPTION, user_specific_config, bot, LEECH_LOG, EXCEP_CHATS, EX_LEECH_LOG, BOT_PM, TG_PRM_FILE_SIZE, PRM_USERS, PRM_LOG, isUserPremium, AUTH_CHANNEL, UPDATES_CHANNEL
+from tobrot import DESTINATION_FOLDER, DOWNLOAD_LOCATION, EDIT_SLEEP_TIME_OUT, INDEX_LINK, VIEW_LINK, LOGGER, \
+                   TG_MAX_FILE_SIZE, UPLOAD_AS_DOC, CAP_STYLE, CUSTOM_CAPTION, user_specific_config, LEECH_LOG, \
+                   EXCEP_CHATS, EX_LEECH_LOG, BOT_PM, TG_PRM_FILE_SIZE, PRM_USERS, PRM_LOG, isUserPremium, AUTH_CHANNEL, \
+                   UPDATES_CHANNEL
 if isUserPremium:
     from tobrot import userBot
 from tobrot.bot_theme.themes import BotTheme
@@ -105,7 +107,7 @@ async def upload_to_tg(
         sizze = opath.getsize(local_file_name)
         if sizze > TG_MAX_FILE_SIZE and sizze < TG_PRM_FILE_SIZE and isUserPremium and (not IS_RETRT):
             LOGGER.info(f"User Type : Premium ({from_user})")
-            sent_message, idCheck = await upload_single_file(
+            sent_message = await upload_single_file(
                 message,
                 local_file_name,
                 caption_str,
@@ -117,14 +119,7 @@ async def upload_to_tg(
             )
             if sent_message is None:
                 return
-            if idCheck:
-                dict_contatining_uploaded_files[
-                    opath.basename(local_file_name)
-                ] = sent_message.message_id
-            else:
-                dict_contatining_uploaded_files[
-                    opath.basename(local_file_name)
-                ] = sent_message.id
+            dict_contatining_uploaded_files[opath.basename(local_file_name)] = sent_message.id
         elif opath.getsize(local_file_name) > TG_MAX_FILE_SIZE:
             LOGGER.info(f"User Type : Non Premium ({from_user})")
             i_m_s_g = await message.reply_text(
@@ -156,7 +151,7 @@ async def upload_to_tg(
         else:
             sizze = opath.getsize(local_file_name)
             LOGGER.info("Files Less Than 2 GB")
-            sent_message, _ = await upload_single_file(
+            sent_message = await upload_single_file(
                 message,
                 local_file_name,
                 caption_str,
@@ -167,9 +162,7 @@ async def upload_to_tg(
                 False
             )
             if sent_message is not None:
-                dict_contatining_uploaded_files[
-                    opath.basename(local_file_name)
-                ] = sent_message.id
+                dict_contatining_uploaded_files[opath.basename(local_file_name)] = sent_message.id
             else:
                 return
     return dict_contatining_uploaded_files
@@ -320,14 +313,98 @@ VIDEO_SUFFIXES = ("MKV", "MP4", "MOV", "WMV", "3GP", "MPG", "WEBM", "AVI", "FLV"
 AUDIO_SUFFIXES = ("MP3", "M4A", "M4B", "FLAC", "WAV", "AIF", "OGG", "AAC", "DTS", "MID", "AMR", "MKA")
 IMAGE_SUFFIXES = ("JPG", "JPX", "PNG", "WEBP", "CR2", "TIF", "BMP", "JXR", "PSD", "ICO", "HEIC", "JPEG")
 
+async def sendPRMDocument(local_file_name, thumb, caption_str, prog, from_user,  start_time):
+    LOGGER.info("UserBot Upload : Started")
+    _upPRMDocument = await userBot.send_document(
+             chat_id=int(PRM_LOG),
+             document=local_file_name,
+             thumb=thumb,
+             caption=caption_str,
+             parse_mode=enums.ParseMode.HTML,
+             disable_notification=True,
+             progress=prog.progress_for_pyrogram,
+             progress_args=(
+                 ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
+                 start_time,
+            ),
+    )
+    LOGGER.info("UserBot Upload : Completed")
+    return _upPRMDocument
+
+async def sendPRMVideo(local_file_name, thumb, duration, width, height, caption_str, prog, from_user, start_time):
+    LOGGER.info("UserBot Upload : Started [VIDEO]")
+    _upPRMVideo = await userBot.send_video(
+            chat_id=int(PRM_LOG),
+            video=local_file_name,
+            thumb=thumb,
+            duration=duration,
+            width=width,
+            height=height,
+            supports_streaming=True,
+            caption=caption_str,
+            parse_mode=enums.ParseMode.HTML,
+            disable_notification=True,
+            progress=prog.progress_for_pyrogram,
+            progress_args=(
+                ((BotTheme(from_user)).START_UPLOAD_MSG).format(filename = opath.basename(local_file_name)),
+                start_time,
+            ),
+    )
+    LOGGER.info("UserBot Upload : Completed")
+    return _upPRMVideo
+async def replyDocument(message, local_file_name, thumb, caption_str, prog, from_user, start_time):
+    doc = await message.reply_document(
+                document=local_file_name,
+                thumb=thumb,
+                caption=caption_str,
+                parse_mode=enums.ParseMode.HTML,
+                disable_notification=True,
+                progress=prog.progress_for_pyrogram,
+                progress_args=(
+                    ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
+                    start_time,
+                ),
+            )
+    return doc
+
+async def replyVideo(message, local_file_name, caption_str, duration, width, height, thumb, prog, from_user, start_time):
+    video = await message.reply_video(
+        video=local_file_name,
+        caption=caption_str,
+        parse_mode=enums.ParseMode.HTML,
+        duration=duration,
+        width=width,
+        height=height,
+        thumb=thumb,
+        supports_streaming=True,
+        disable_notification=True,
+        progress=prog.progress_for_pyrogram,
+        progress_args=(
+            ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
+            start_time,
+        ),
+    )
+    return video
+
+async def copyMedia(client: Client, chatt, rply, sent_msg, caption_str):
+    await asleep(3)
+    copied = await client.copy_message(
+        chat_id=int(chatt),
+        from_chat_id=int(PRM_LOG),
+        message_id=sent_msg.id,
+        caption=caption_str,
+        parse_mode=enums.ParseMode.HTML,
+        reply_to_message_id=rply
+    )
+    return copied
+
 async def upload_single_file(message, local_file_name, caption_str, from_user, client, edit_media, yt_thumb, prm_atv: bool):
-    idc = False
     base_file_name = opath.basename(local_file_name)
     await asleep(EDIT_SLEEP_TIME_OUT)
     local_file_name = str(Path(local_file_name).resolve())
     sent_message = None
-    start_time = time()
     thumbnail_location = f"{DOWNLOAD_LOCATION}/thumbnails/{from_user}.jpg"
+    start_time = time()
 
     __uploadAsDoc = user_specific_config.get(from_user, False)
         
@@ -352,6 +429,7 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                 thumbnail_location, opath.dirname(opath.abspath(local_file_name))
             )
         thumb = thumb_image_path
+        
         message_for_progress_display = message
         if not edit_media:
             message_for_progress_display = await message.reply_text(
@@ -359,71 +437,26 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
             )
             prog = Progress(from_user, client, message_for_progress_display)
         LOGGER.info(f"Premium Active : {prm_atv}")
-        if str(message.chat.id) in str(EXCEP_CHATS) and not prm_atv:
-            sent_message = await message.reply_document(
-                document=local_file_name,
-                thumb=thumb,
-                caption=caption_str,
-                parse_mode=enums.ParseMode.HTML,
-                disable_notification=True,
-                progress=prog.progress_for_pyrogram,
-                progress_args=(
-                    ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                    start_time,
-                ),
-            )
-        elif str(message.chat.id) in str(EXCEP_CHATS) and prm_atv:
-            with userBot:
-                LOGGER.info("UserBot Upload : Started")
-                sent_msg = await userBot.send_document(
-                    chat_id=int(PRM_LOG),
-                    document=local_file_name,
-                    thumb=thumb,
-                    caption=caption_str,
-                    parse_mode=enums.ParseMode.HTML,
-                    disable_notification=True,
-                    progress=prog.progress_for_pyrogram,
-                    progress_args=(
-                        ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                        start_time,
-                    ),
-                )
-                LOGGER.info("UserBot Upload : Completed")
-            try:
-                sent_message = await client.send_document(
-                    chat_id=message.chat.id,
-                    document=sent_msg.document.file_id,
-                    thumb=thumb,
-                    caption=caption_str,
-                    parse_mode=enums.ParseMode.HTML,
-                    disable_notification=True,
-                    reply_to_message_id=message.id
-                )
-            except Exception as e:
-                LOGGER.info(f"[4GB UPLOAD] : {e}")
-                try:
-                    sent_message = await sent_msg.copy(chat_id = message.chat.id, reply_to_message_id=message.id)
-                except Exception as er:
-                    LOGGER.info(f"[4GB UPLOAD USER] : {er}")
-                    sent_message = await client.copy_message(
-                        chat_id=message.chat.id,
-                        from_chat_id=int(PRM_LOG),
-                        message_id=sent_msg.id,
-                        caption=caption_str,
-                        parse_mode=enums.ParseMode.HTML,
-                        reply_to_message_id=message.id
-                    )
-                    idc = True
+        if message.chat.id in EXCEP_CHATS and not prm_atv:
+            sent_message = await replyDocument(message, local_file_name, thumb, caption_str, prog, from_user, start_time)
+        elif message.chat.id in EXCEP_CHATS and prm_atv:
+            sent_msg = await sendPRMDocument(local_file_name, thumb, caption_str, prog, from_user,  start_time)
+            sent_message = await copyMedia(client, message.chat.id, message.id, sent_msg, caption_str)
             LOGGER.info("Bot 4GB Upload : Completed")
         else:
-            sent_message = await client.send_document(
-                chat_id=int(LEECH_LOG),
-                document=local_file_name,
-                thumb=thumb,
-                caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
-                parse_mode=enums.ParseMode.HTML,
-                disable_notification=True,
-            )
+            if prm_atv:
+                sent_msg = await sendPRMDocument(local_file_name, thumb, caption_str, prog, from_user,  start_time)
+                sent_message = await copyMedia(client, LEECH_LOG, None, sent_msg, caption_str)
+                LOGGER.info("Bot 4GB Upload : Completed")
+            else:
+                sent_message = await client.send_document(
+                    chat_id=int(LEECH_LOG),
+                    document=local_file_name,
+                    thumb=thumb,
+                    caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
+                    parse_mode=enums.ParseMode.HTML,
+                    disable_notification=True,
+                )
             if BOT_PM:
                 try:
                   await client.send_document(
@@ -529,92 +562,35 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                         )
                     )
                 else:
-                    if str(message.chat.id) in str(EXCEP_CHATS) and not prm_atv:
-                        sent_message = await message.reply_video(
-                            video=local_file_name,
-                            caption=caption_str,
-                            parse_mode=enums.ParseMode.HTML,
-                            duration=duration,
-                            width=width,
-                            height=height,
-                            thumb=thumb,
-                            supports_streaming=True,
-                            disable_notification=True,
-                            progress=prog.progress_for_pyrogram,
-                            progress_args=(
-                                ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                                start_time,
-                            ),
-                         )
-                    elif str(message.chat.id) in str(EXCEP_CHATS) and prm_atv:
-                        with userBot:
-                            LOGGER.info("UserBot Upload : Started [VIDEO]")
-                            sent_msg = await userBot.send_video(
-                                chat_id=int(PRM_LOG),
+                    if message.chat.id in EXCEP_CHATS and not prm_atv:
+                        sent_message = await replyVideo(message, local_file_name, caption_str, duration, width, height, thumb, prog, from_user, start_time)
+                    elif message.chat.id in EXCEP_CHATS and prm_atv:
+                        send_msg = await sendPRMVideo(local_file_name, thumb, duration, width, height, caption_str, prog, from_user, start_time)
+                        sent_message = await copyMedia(client, message.chat.id, message.id, send_msg, caption_str)
+                        LOGGER.info("Bot 4GB Upload : Completed")
+                    else:
+                        if prm_atv:
+                            send_msg = await sendPRMVideo(local_file_name, thumb, duration, width, height, caption_str, prog, from_user, start_time)
+                            sent_message = await copyMedia(client, LEECH_LOG, None, send_msg, caption_str)
+                            LOGGER.info("Bot 4GB Upload : Completed")
+                        else:
+                            sent_message = await client.send_video(
+                                chat_id=int(LEECH_LOG),
                                 video=local_file_name,
-                                thumb=thumb,
+                                caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
+                                parse_mode=enums.ParseMode.HTML,
                                 duration=duration,
                                 width=width,
                                 height=height,
+                                thumb=thumb,
                                 supports_streaming=True,
-                                caption=caption_str,
-                                parse_mode=enums.ParseMode.HTML,
                                 disable_notification=True,
                                 progress=prog.progress_for_pyrogram,
                                 progress_args=(
-                                    ((BotTheme(from_user)).START_UPLOAD_MSG).format(filename = opath.basename(local_file_name)),
+                                    ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
                                     start_time,
                                 ),
                             )
-                            LOGGER.info("UserBot Upload : Completed")
-                        try:
-                            sent_message = await client.send_video(
-                                chat_id=message.chat.id,
-                                video=sent_msg.video.file_id,
-                                thumb=thumb,
-                                duration=duration,
-                                width=width,
-                                height=height,
-                                supports_streaming=True,
-                                caption=caption_str,
-                                parse_mode=enums.ParseMode.HTML,
-                                disable_notification=True,
-                                reply_to_message_id=message.id
-                            )
-                        except Exception as e:
-                            LOGGER.info(f"[4GB UPLOAD] : {e}")
-                            try:
-                                sent_message = await sent_msg.copy(chat_id = message.chat.id, reply_to_message_id=message.id)
-                            except Exception as er:
-                                LOGGER.info(f"[4GB UPLOAD USER] : {er}")
-                                sent_message = await client.copy_message(
-                                    chat_id=message.chat.id,
-                                    from_chat_id=int(PRM_LOG),
-                                    message_id=sent_msg.id,
-                                    caption=caption_str,
-                                    parse_mode=enums.ParseMode.HTML,
-                                    reply_to_message_id=message.id
-                                )
-                                idc = True
-                        LOGGER.info("Bot 4GB Upload : Completed")
-                    else:
-                        sent_message = await client.send_video(
-                            chat_id=int(LEECH_LOG),
-                            video=local_file_name,
-                            caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
-                            parse_mode=enums.ParseMode.HTML,
-                            duration=duration,
-                            width=width,
-                            height=height,
-                            thumb=thumb,
-                            supports_streaming=True,
-                            disable_notification=True,
-                            progress=prog.progress_for_pyrogram,
-                            progress_args=(
-                                ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                                start_time,
-                            ),
-                         )
                         if BOT_PM:
                             try:
                                 await client.send_video(
@@ -678,7 +654,7 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                         )
                     )
                 else:
-                    if str(message.chat.id) in str(EXCEP_CHATS):
+                    if message.chat.id in EXCEP_CHATS:
                         sent_message = await message.reply_audio(
                             audio=local_file_name,
                             caption=caption_str,
@@ -754,33 +730,31 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                         )
                     )
                 else:
-                    if str(message.chat.id) in str(EXCEP_CHATS):
-                        sent_message = await message.reply_document(
-                            document=local_file_name,
-                            thumb=thumb,
-                            caption=caption_str,
-                            parse_mode=enums.ParseMode.HTML,
-                            disable_notification=True,
-                            progress=prog.progress_for_pyrogram,
-                            progress_args=(
-                                ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                                start_time,
-                            ),
-                        )
+                    if message.chat.id in EXCEP_CHATS and not prm_atv:
+                        sent_message = await replyDocument(message, local_file_name, thumb, caption_str, prog, from_user, start_time)
+                    elif message.chat.id in EXCEP_CHATS and prm_atv:
+                        sent_msg = await sendPRMDocument(local_file_name, thumb, caption_str, prog, from_user,  start_time)
+                        sent_message = await copyMedia(client, message.chat.id, message.id, sent_msg, caption_str)
+                        LOGGER.info("Bot 4GB Upload : Completed")
                     else:
-                        sent_message = await client.send_document(
-                            chat_id=int(LEECH_LOG),
-                            document=local_file_name,
-                            thumb=thumb,
-                            caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
-                            parse_mode=enums.ParseMode.HTML,
-                            disable_notification=True,
-                            progress=prog.progress_for_pyrogram,
-                            progress_args=(
-                                ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
-                                start_time,
-                            ),
-                        )
+                        if prm_atv:
+                            sent_msg = await sendPRMDocument(local_file_name, thumb, caption_str, prog, from_user,  start_time)
+                            sent_message = await copyMedia(client, LEECH_LOG, None, sent_msg, caption_str)
+                            LOGGER.info("Bot 4GB Upload : Completed")
+                        else:
+                            sent_message = await client.send_document(
+                                chat_id=int(LEECH_LOG),
+                                document=local_file_name,
+                                thumb=thumb,
+                                caption=f"<code>{base_file_name}</code>\n\n♨️ 𝕌𝕡𝕝𝕠𝕒𝕕𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL} ♨️",
+                                parse_mode=enums.ParseMode.HTML,
+                                disable_notification=True,
+                                progress=prog.progress_for_pyrogram,
+                                progress_args=(
+                                    ((BotTheme(from_user)).TOP_PROG_MSG).format(base_file_name = opath.basename(local_file_name)),
+                                    start_time,
+                                ),
+                            )
                         if BOT_PM:
                             try:
                                 await client.send_document(
@@ -836,4 +810,4 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                     LOGGER.warning(str(rr))
                     await asleep(5)
         oremove(local_file_name)
-    return sent_message, idc
+    return sent_message

@@ -13,10 +13,6 @@ import asyncio
 import aiohttp
 import feedparser
 import itertools
-
-from telegram.update import Update
-from telegram.ext import CommandHandler
-
 from urllib.parse import quote as urlencode, urlsplit
 
 from pyrogram import filters, emoji, enums
@@ -24,20 +20,11 @@ from pyrogram.parser import html as pyrogram_html
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
-from tobrot import app, bot, LOGGER 
+from tobrot import app, LOGGER, UPDATES_CHANNEL
 from tobrot.helper_funcs.bot_commands import BotCommands
-from tobrot.helper_funcs.filters import CustomFilters
 
 search_lock = asyncio.Lock()
 search_info = {False: dict(), True: dict()}
-
-def sendMessage(text: str, bot, update: Update):
-    try:
-        return bot.send_message(update.message.chat_id,
-                            reply_to_message_id=update.message.id,
-                            text=text, allow_sending_without_reply=True,  parse_mode=enums.ParseMode.HTML)
-    except Exception as e:
-        LOGGER.error(str(e))
 
 def callback_data(data):
     def func(flt, client, callback_query):
@@ -185,11 +172,6 @@ class TorrentSearch:
         self.command = command
         self.source = source.rstrip('/')
         self.RESULT_STR = result_str
-        for a in app:
-            a.add_handler(MessageHandler(self.find, filters.command([command, f'{self.command}@{bot.username}'])))
-            a.add_handler(CallbackQueryHandler(self.previous, filters.regex(f"{self.command}_previous")))
-            a.add_handler(CallbackQueryHandler(self.delete, filters.regex(f"{self.command}_delete")))
-            a.add_handler(CallbackQueryHandler(self.next, filters.regex(f"{self.command}_next")))
         
     @staticmethod
     def format_magnet(string: str):
@@ -228,11 +210,10 @@ class TorrentSearch:
 
         res_lim = min(self.RESULT_LIMIT, len(self.response) - self.RESULT_LIMIT*self.index)
         result = f"**Page - {self.index+1}**\n\n"
-        result += "\n\n≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡\n\n".join(
+        result += "\n\n━━━━━━━✦✗✦━━━━━━━━\n\n".join(
             self.get_formatted_string(self.response[self.response_range[self.index]+i])
             for i in range(res_lim)
         )
-
 
         await self.message.edit(
             result,
@@ -279,82 +260,65 @@ class TorrentSearch:
         await self.update_message()
 
 RESULT_STR_1337 = (
-    "✘Name: `{Name}`\n"
-    "✘Size: {Size}\n"
-    "✘Seeders: {Seeders} || ✘Leechers: {Leechers}"
+    "✘ Name: `{Name}`\n"
+    "✘ Size: {Size}\n"
+    "✘ Seeders: {Seeders} ✘ Leechers: {Leechers}"
 )
 RESULT_STR_PIRATEBAY = (
-    "➲Name: `{Name}`\n"
-    "➲Size: {Size}\n"
-    "➲Seeders: {Seeders} || ➲Leechers: {Leechers}"
+    "➲ Name: `{Name}`\n"
+    "➲ Size: {Size}\n"
+    "➲ Seeders: {Seeders} ➲ Leechers: {Leechers}"
 )
 RESULT_STR_TGX = (
-    "⇒Name: `{Name}`\n" 
-    "⇒Size: {Size}\n"
-    "⇒Seeders: {Seeders} || ⇒Leechers: {Leechers}"
+    "⇒ Name: `{Name}`\n" 
+    "⇒ Size: {Size}\n"
+    "⇒ Seeders: {Seeders} ⇒ Leechers: {Leechers}"
 )
 RESULT_STR_YTS = (
-    "❂Name: `{Name}`\n"
-    "❂Released on: {ReleasedDate}\n"
-    "❂Genre: {Genre}\n"
-    "❂Rating: {Rating}\n"
-    "❂Likes: {Likes}\n"
-    "❂Duration: {Runtime}\n"
-    "❂Language: {Language}"
+    "❂ Name: `{Name}`\n"
+    "❂ Released on: {ReleasedDate}\n"
+    "❂ Genre: {Genre}\n"
+    "❂ Rating: {Rating}\n"
+    "❂ Likes: {Likes}\n"
+    "❂ Duration: {Runtime}\n"
+    "❂ Language: {Language}"
 )
 RESULT_STR_EZTV = (
-    "★Name: `{Name}`\n"
-    "★Size: {Size}\n"
-    "★Seeders: {Seeders}"
+    "★ Name: `{Name}`\n"
+    "★ Size: {Size}\n"
+    "★ Seeders: {Seeders}"
 )
 RESULT_STR_TORLOCK = (
-    "✿Name: `{Name}`\n"
-    "✿Size: {Size}\n"
-    "✿Seeders: {Seeders} || ✿Leechers: {Leechers}"
+    "✿ Name: `{Name}`\n"
+    "✿ Size: {Size}\n"
+    "✿ Seeders: {Seeders} ✿ Leechers: {Leechers}"
 )
 RESULT_STR_RARBG = (
-    "⊗Name: `{Name}`\n"
-    "⊗Size: {Size}\n"
-    "⊗Seeders: {Seeders} || ⊗Leechers: {Leechers}"
+    "⊗ Name: `{Name}`\n"
+    "⊗ Size: {Size}\n"
+    "⊗ Seeders: {Seeders} ⊗ Leechers: {Leechers}"
 )
 RESULT_STR_ALL = (
-    "❖Name: `{Name}`\n"
-    "❖Size: {Size}\n"
-    "❖Seeders: {Seeders} || ❖ Leechers: {Leechers}"
+    "❖ Name: `{Name}`\n"
+    "❖ Size: {Size}\n"
+    "❖ Seeders: {Seeders} ❖ Leechers: {Leechers}"
 )
 
-TORRENT_API = 'https://api.linkstore.eu.org/api'
-
-torrents_dict = {
-    '1337x': {'source': f"{TORRENT_API}/1337x/", 'result_str': RESULT_STR_1337},
-    'piratebay': {'source': f"{TORRENT_API}/piratebay/", 'result_str': RESULT_STR_PIRATEBAY},
-    'tgx': {'source': f"{TORRENT_API}/tgx/", 'result_str': RESULT_STR_TGX},
-    'yts': {'source': f"{TORRENT_API}/yts/", 'result_str': RESULT_STR_YTS},
-    'eztv': {'source': f"{TORRENT_API}/eztv/", 'result_str': RESULT_STR_EZTV},
-    'torlock': {'source': f"{TORRENT_API}/torlock/", 'result_str': RESULT_STR_TORLOCK},
-    'rarbg': {'source': f"{TORRENT_API}/rarbg/", 'result_str': RESULT_STR_RARBG},
-    'ts': {'source': f"{TORRENT_API}/all/", 'result_str': RESULT_STR_ALL}
-}
-
-torrent_handlers = []
-for command, value in torrents_dict.items():
-    torrent_handlers.append(TorrentSearch(command, value['source'], value['result_str']))
-
 async def searchhelp(self, message):
-    help_string = '''
+    help_string = f'''
 ┏━ 𝗧𝗼𝗿𝗿𝗲𝗻𝘁 𝗦𝗲𝗮𝗿𝗰𝗵 𝗠𝗼𝗱𝘂𝗹𝗲 ━━╻
 ┃
-┃• /nyaasi <i>[search query]</i>
-┃• /sukebei <i>[search query]</i>
-┃• /1337x <i>[search query]</i>
-┃• /piratebay <i>[search query]</i>
-┃• /tgx <i>[search query]</i>
-┃• /yts <i>[search query]</i>
-┃• /eztv <i>[search query]</i>
-┃• /torlock <i>[search query]</i>
-┃• /rarbg <i>[search query]</i>
-┃• /ts <i>[search query]</i>
+┃• /nyaasi <i>[search in nyaasi]</i>
+┃• /sukebei <i>[search in sukebei]</i>
+┃• /1337x <i>[search 1337x]</i>
+┃• /piratebay <i>[search piratebay]</i>
+┃• /tgx <i>[search torrentgalaxy]</i>
+┃• /yts <i>[search yts]</i>
+┃• /eztv <i>[search eztv]</i>
+┃• /torlock <i>[search torlock]</i>
+┃• /rarbg <i>[search rarbg]</i>
+┃• /ts <i>[search on all torrents]</i>
 ┃
-┗━♦️ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 @FuZionX♦️━╹
+┗━♦️ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL}♦️━╹
 '''
     await message.reply(text=help_string, parse_mode=enums.ParseMode.HTML)

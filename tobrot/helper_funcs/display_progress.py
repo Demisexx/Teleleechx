@@ -75,7 +75,7 @@ class Progress:
                 d = humanbytes(current),
                 t = humanbytes(total),
                 s = humanbytes(speed),
-                eta = elapsed_time if elapsed_time != '' else "0 s",
+                eta = estimated_total_time if estimated_total_time != '' else "0s",
                 UPDATES_CHANNEL = UPDATES_CHANNEL
             )
             try:

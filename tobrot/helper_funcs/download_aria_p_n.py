@@ -333,7 +333,7 @@ async def call_apropriate_function(
                 for key_f_res_se in final_response:
                     local_file_name = key_f_res_se
                     message_id = final_response[key_f_res_se]
-                    channel_id = str(LEECH_LOG)[4:] if LEECH_LOG and str(user_message.chat.id) not in str(EXCEP_CHATS) else str(sent_message_to_update_tg_p.chat.id)[4:]
+                    channel_id = str(LEECH_LOG)[4:] if LEECH_LOG and user_message.chat.id not in EXCEP_CHATS else str(sent_message_to_update_tg_p.chat.id)[4:]
                     private_link = f"https://t.me/c/{channel_id}/{message_id}"
                     message_to_send += ((BotTheme(u_id)).SINGLE_LIST_FILES_MSG).format(
                         private_link = private_link,
@@ -341,23 +341,22 @@ async def call_apropriate_function(
                     )
                     if len(mention_req_user.encode('utf-8') + message_to_send.encode('utf-8') + message_credits.encode('utf-8')) > 4000:
                         tsleep(1.5)
-                        await __sendSpecificLogMsg(client, user_message, mention_req_user, message_to_send, message_credits, rpy_mssg_id)
+                        await __sendSpecificLogMsg(client, user_message, mention_req_user, message_to_send, message_credits, u_id, rpy_mssg_id)
                         message_to_send = ""
                 if message_to_send != "":
                     tsleep(1.5)
-                    await __sendSpecificLogMsg(client, user_message, mention_req_user, message_to_send, message_credits, rpy_mssg_id)
+                    await __sendSpecificLogMsg(client, user_message, mention_req_user, message_to_send, message_credits, u_id, rpy_mssg_id)
             except Exception as go:
                 LOGGER.error(go)
     return True, None
 
-async def __sendSpecificLogMsg(client, user_message, req, send, cred, rpy_mssg_id=None):
+async def __sendSpecificLogMsg(client, user_message, req, send, cred, u_id, rpy_mssg_id=None):
     if LEECH_LOG and str(user_message.chat.id) not in str(EXCEP_CHATS):
-        log_txt = "┃ <b>🖨 Requested Leeched File are Sent to User PM.</b>\n"
-        if BOT_PM: log_txt += "┃ <b>♻️ File(s) are Uploaded on Leech Log Channel, Check Down View.</b>\n"
-        if rpy_mssg_id:
-            leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, reply_to_message_id=rpy_mssg_id, parse_mode=enums.ParseMode.HTML)
-        else:
-            leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, parse_mode=enums.ParseMode.HTML) 
+        log_txt = "┃ <b>♻️ File(s) are Uploaded on Leech Log Channel, Check Down to View.</b>\n"
+        if BOT_PM: 
+            log_txt += "┃ <b>🖨 Requested Leeched File are Sent to User PM.</b>\n"
+            await client.send_message(chat_id=u_id, text=req + "┃ <b>🛰 Your Leeched Files are Send above </b>\n" + cred, disable_web_page_preview=True, parse_mode=enums.ParseMode.HTML)
+        leech_msg = await client.send_message(chat_id=int(LEECH_LOG), text=req + send + cred, disable_web_page_preview=True, reply_to_message_id=rpy_mssg_id, parse_mode=enums.ParseMode.HTML)
         inbtns = [
             [InlineKeyboardButton("Gᴇᴛ Lᴇᴇᴄʜᴇᴅ Fɪʟᴇs", url=leech_msg.link)]
         ]

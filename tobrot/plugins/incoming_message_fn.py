@@ -19,8 +19,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 
 from tobrot import DOWNLOAD_LOCATION, CLONE_COMMAND_G, GLEECH_COMMAND, GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, \
                    LOGGER, GPYTDL_COMMAND, STATUS_COMMAND, UPDATES_CHANNEL, LEECH_LOG, BOT_PM, EXCEP_CHATS, app, \
-                   FSUB_CHANNEL, USER_DTS, AUTO_LEECH, RCLONE_CONF_URL
-from tobrot import bot, EDIT_SLEEP_TIME_OUT
+                   FSUB_CHANNEL, USER_DTS, AUTO_LEECH, RCLONE_CONF_URL, EDIT_SLEEP_TIME_OUT
 from tobrot.helper_funcs.display_progress import humanbytes, TimeFormatter
 from tobrot.helper_funcs.bot_commands import BotCommands
 from tobrot.helper_funcs.admin_check import AdminCheck
@@ -47,7 +46,7 @@ async def incoming_purge_message_f(client: Client, message: Message):
     await msg.delete()
 
 async def check_bot_pm(client: Client, message: Message):
-    if message.chat.type != enums.ChatType.PRIVATE and str(message.chat.id) not in str(EXCEP_CHATS):
+    if message.chat.type != enums.ChatType.PRIVATE and message.chat.id not in EXCEP_CHATS:
         LOGGER.info("[Bot PM] Initiated")
         try:
             send = await client.send_message(message.from_user.id, text='Leech Started !!')
@@ -67,6 +66,7 @@ async def check_bot_pm(client: Client, message: Message):
 ┗ <i>From Now on, Links and Leeched Files in PM and Log Channel Only !!</i>'''
             message = await message.reply_text(text=startwarn, parse_mode=enums.ParseMode.HTML, quote=True, reply_markup=button_markup)
             return False
+    else: return True
 
 async def incoming_message_f(client: Client, message: Message):
     """/leech command or /gleech command"""
@@ -88,6 +88,7 @@ async def incoming_message_f(client: Client, message: Message):
     elif BOT_PM and (not LEECH_LOG):
         LOGGER.warning("[Bot PM] Must Provide LEECH_LOG to Use it")
 
+    rpy_mssg_id=None
     if USER_DTS:
         text__, txtCancel = getDetails(client, message, 'Leech')
         link_text = await message.reply_text(text=text__, parse_mode=enums.ParseMode.HTML, quote=True, disable_web_page_preview=True)
@@ -375,7 +376,7 @@ async def rename_tg_file(client: Client, message: Message):
             for key_f_res_se in final_response:
                 local_file_name = key_f_res_se
                 message_id = final_response[key_f_res_se]
-                channel_id = str(message.chat.id)[4:]
+                channel_id = str(LEECH_LOG)[4:] if LEECH_LOG and user_message.chat.id not in EXCEP_CHATS else str(message.chat.id)[4:]
                 private_link = f"https://t.me/c/{channel_id}/{message_id}"
                 message_to_send += ((BotTheme(usr_id)).SINGLE_LIST_FILES_MSG).format(
                     private_link = private_link,

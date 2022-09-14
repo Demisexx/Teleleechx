@@ -21,7 +21,6 @@ from logging.handlers import RotatingFileHandler
 from sys import exit
 from dotenv import load_dotenv
 from pyrogram import Client
-from telegram.ext import Updater
 
 # Adding Files and Data >>>>>>>>
 run(["wget", "-O", "/app/tobrot/aria2/dht.dat", "https://github.com/P3TERX/aria2.conf/raw/master/dht.dat"])
@@ -251,7 +250,7 @@ TGH_AUTHOR_URL = getVar("TGH_AUTHOR_URL", "https://t.me/FXTorrentz")
 LEECH_LOG = getVar("LEECH_LOG", "")
 LEECH_INVITE = getVar("LEECH_INVITE", "False")
 EX_LEECH_LOG = [int(chats) if (' ' not in getVar('EX_LEECH_LOG', '')) else int(chats) for chats in getVar('EX_LEECH_LOG', '').split()]
-EXCEP_CHATS = getVar("EXCEP_CHATS", "")
+EXCEP_CHATS = [int(chats) if (' ' not in getVar('EXCEP_CHATS', '')) else int(chats) for chats in getVar('EXCEP_CHATS', '').split()]
 BOT_PM = getVar("BOT_PM", False)
 AUTO_LEECH = getVar("AUTO_LEECH", False)
 
@@ -314,8 +313,13 @@ for i in range(1, len(TG_BOT_TOKEN)):
     app.append(Client(f"LeechBot-{i}", bot_token=TG_BOT_TOKEN[i], api_id=APP_ID[i], api_hash=API_HASH[i], workers=343))
 if len(app) > 1:
     LOGGER.info(f"[Multi Client Initiated] Total Bots : {len(app)}")
+
+# Start The Bot >>>>>>>
+for a in app:
+    a.start()
+
 isUserPremium = False
-if len(STRING_SESSION) > 10:
+if STRING_SESSION:
     if userBot := Client(
         "Tele-UserBot",
         api_id=APP_ID[0],
@@ -331,6 +335,3 @@ if len(STRING_SESSION) > 10:
             LOGGER.info("[SUCCESS] Initiated UserBot : Non-Premium Mode. Add Premium Account StringSession to Use 4GB Upload. ")
     else:
         LOGGER.warning("[FAILED] Userbot Not Started. ReCheck Your STRING_SESSION, and Other Vars")
-
-updater = Updater(token=TG_BOT_TOKEN[0])
-bot = updater.bot

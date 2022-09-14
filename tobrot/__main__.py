@@ -23,7 +23,7 @@ from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 from sys import executable
 from subprocess import run as srun
 
-from tobrot import HEROKU_API_KEY, HEROKU_APP_NAME, app, bot, __version__
+from tobrot import HEROKU_API_KEY, HEROKU_APP_NAME, app, __version__
 from tobrot import OWNER_ID, SUDO_USERS, AUTH_CHANNEL, DOWNLOAD_LOCATION, GET_SIZE_G, GLEECH_COMMAND, \
                    GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, LOGGER, RENEWME_COMMAND, TELEGRAM_LEECH_UNZIP_COMMAND, \
                    TELEGRAM_LEECH_COMMAND, UPLOAD_COMMAND, GYTDL_COMMAND, GPYTDL_COMMAND, RCLONE_COMMAND, \
@@ -38,7 +38,9 @@ from tobrot.plugins.anilist import get_anime_query, anilist_callbackquery
 from tobrot.plugins.index_scrape import index_scrape
 from tobrot.plugins.call_back_button_handler import button
 from tobrot.plugins.imdb import imdb_search, imdb_callback
-from tobrot.plugins.torrent_search import searchhelp, nyaa_callback, nyaa_nop, nyaa_search, nyaa_search_sukebei
+from tobrot.plugins.torrent_search import searchhelp, nyaa_callback, nyaa_nop, nyaa_search, nyaa_search_sukebei, TorrentSearch, \
+                                          RESULT_STR_1337, RESULT_STR_PIRATEBAY, RESULT_STR_TGX, RESULT_STR_YTS, RESULT_STR_EZTV, \
+                                          RESULT_STR_TORLOCK, RESULT_STR_RARBG, RESULT_STR_ALL
 from tobrot.plugins.custom_utils import prefix_set, caption_set, template_set, theme_set, anilist_set
 from tobrot.plugins.url_parser import url_parser
 from tobrot.helper_funcs.bot_commands import BotCommands
@@ -142,9 +144,8 @@ async def restart(client, message:Message):
     if dynoRestart:
         LOGGER.info("[HEROKU] Dyno Restarting...")
         restart_message = await message.reply_text("__Dyno Restarting...__")
-        app.stop()
-        if STRING_SESSION:
-            userBot.stop()
+        await app.stop()
+        if STRING_SESSION: await userBot.stop()
         heroku_conn = from_apikey(HEROKU_API_KEY)
         appx = heroku_conn.app(HEROKU_APP_NAME)
         appx.restart()
@@ -174,10 +175,6 @@ if __name__ == "__main__":
     # Generat Download Directory, if Not Exist !!
     if not opath.isdir(DOWNLOAD_LOCATION):
         makedirs(DOWNLOAD_LOCATION)
-
-    # Start The Bot >>>>>>>
-    for a in app:
-        a.start()
 
     # Pixabay API >>>>>>>>
     if PIXABAY_API_KEY:
@@ -232,6 +229,19 @@ if __name__ == "__main__":
     if SET_BOT_COMMANDS.lower() == "true":
         for a in app:
             a.set_bot_commands(botcmds)
+
+    TORRENT_API = 'https://api.linkstore.eu.org/api'
+
+    torrents_dict = {
+        '1337x': {'source': f"{TORRENT_API}/1337x/", 'result_str': RESULT_STR_1337},
+        'piratebay': {'source': f"{TORRENT_API}/piratebay/", 'result_str': RESULT_STR_PIRATEBAY},
+        'tgx': {'source': f"{TORRENT_API}/tgx/", 'result_str': RESULT_STR_TGX},
+        'yts': {'source': f"{TORRENT_API}/yts/", 'result_str': RESULT_STR_YTS},
+        'eztv': {'source': f"{TORRENT_API}/eztv/", 'result_str': RESULT_STR_EZTV},
+        'torlock': {'source': f"{TORRENT_API}/torlock/", 'result_str': RESULT_STR_TORLOCK},
+        'rarbg': {'source': f"{TORRENT_API}/rarbg/", 'result_str': RESULT_STR_RARBG},
+        'ts': {'source': f"{TORRENT_API}/all/", 'result_str': RESULT_STR_ALL}
+    }
 
     # Command Initialize >>>>>>>>
     for a in app:
@@ -290,6 +300,11 @@ if __name__ == "__main__":
         a.add_handler(MessageHandler(nyaa_search_sukebei, filters=filters.command(['sukebei', f'sukebei@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(picture_add, filters=filters.command(['addpic', f'addpic@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(pictures, filters=filters.command(['pics', f'pics@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
+        for tcom, value in torrents_dict.items():
+            a.add_handler(MessageHandler(TorrentSearch(tcom, value['source'], value['result_str']).find, filters.command([tcom, f'{tcom}@{username}'])))
+            a.add_handler(CallbackQueryHandler(TorrentSearch(tcom, value['source'], value['result_str']).previous, filters.regex(f"{tcom}_previous")))
+            a.add_handler(CallbackQueryHandler(TorrentSearch(tcom, value['source'], value['result_str']).delete, filters.regex(f"{tcom}_delete")))
+            a.add_handler(CallbackQueryHandler(TorrentSearch(tcom, value['source'], value['result_str']).next, filters.regex(f"{tcom}_next")))
 
         a.add_handler(CallbackQueryHandler(anilist_callbackquery, filters=filters.regex(pattern="^(tags|stream|reviews|relations|characters|home)")))
         a.add_handler(CallbackQueryHandler(imdb_callback, filters=filters.regex(pattern="^imdb")))
@@ -307,11 +322,10 @@ if __name__ == "__main__":
     for a in app:
         logging.info(f"{(a.get_me()).first_name} [@{(a.get_me()).username}] has Started Running...🏃💨💨")
     if STRING_SESSION:
-        logging.info(f"User : {(userBot.get_me()).first_name} has Started Revolving...♾️⚡️")
+            logging.info(f"User : {(userBot.get_me()).first_name} has Started Revolving...♾️⚡️")
 
     idle()
 
     for a in app:
         a.stop()
-    if STRING_SESSION:
-        userBot.stop()
+    if STRING_SESSION: userBot.stop()
