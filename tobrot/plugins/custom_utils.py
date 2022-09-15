@@ -32,19 +32,19 @@ async def prefix_set(client, message):
     if prefix_ != '':
         prefix_ = rsplit(r'c:|s:|no:|\|', prefix_)[0].strip()
 
-    preCus = txt.split('c:')
+    preCus = txt.split(' c:')
     if len(preCus) > 1:
         preCus = preCus[1]
         fname = preCus.split('s:')[0].strip()
     else:
         fname = ""
-    preSuf = txt.split('s:')
+    preSuf = txt.split(' s:')
     if len(preSuf) > 1:
         preSuf = preSuf[1]
         suffix = preSuf.split('no:')[0]
     else:
         suffix = ""
-    preNo = txt.split('no:')
+    preNo = txt.split(' no:')
     if len(preNo) > 1:
         preNo = preNo[1]
         no = preNo.split('|', 1)[0].strip()
