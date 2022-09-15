@@ -50,7 +50,7 @@ async def prefix_set(client, message):
         no = preNo.split('|', 1)[0].strip()
     else:
         no = '0'
-    preRep = txt.split('|')
+    preRep = txt.split('|', 1)
     args = preRep[1] if len(preRep) > 1 else ""
     tData = [prefix_, fname, suffix, no, args]
     PRE_DICT[user_id_] = tData
