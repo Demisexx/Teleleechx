@@ -188,7 +188,7 @@ if __name__ == "__main__":
                 largeImageURL = jdata['hits'][x]['largeImageURL']
                 PICS_LIST.append(largeImageURL)
         except Exception as err:
-            LOGGER.INFO(f"Pixabay API Error: {err}")
+            LOGGER.info(f"Pixabay API Error: {err}")
 
     # Bot Restart & Restart Message >>>>>>>>
     curr = datetime.now(timezone(TIMEZONE))
