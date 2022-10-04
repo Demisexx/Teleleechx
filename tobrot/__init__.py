@@ -80,7 +80,7 @@ USER_THEMES = {}
 AVAILABLE_THEMES = {}
 USER_LOGS = {}
 AUTO_USERS = {}
-__version__ = "2.8.3"
+__version__ = "2.9.1"
 
 TG_BOT_TOKEN, APP_ID, API_HASH = [], [], []
 
