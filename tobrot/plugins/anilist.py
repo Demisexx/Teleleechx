@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# (c) 5MysterySD Made from Scratch !!
+#
+# Copyright 2022 - TeamTele-LeechX
+# 
+# This is Part of < https://github.com/5MysterySD/Tele-LeechX >
+# All Right Reserved
+
 from requests import post as rpost
 from random import choice
 from datetime import datetime
@@ -282,3 +291,4 @@ async def anilist_callbackquery(client, query: CallbackQuery):
         siteid = qdic[1]
         msg, btn = get_anime_query(client, query, siteid)
         await query.edit_message_caption(caption=msg, reply_markup=InlineKeyboardMarkup(btn))
+    await query.answer()

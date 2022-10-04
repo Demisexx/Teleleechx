@@ -19,7 +19,7 @@ from natsort import natsorted
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 from pyrogram.errors import FloodWait, MessageNotModified
 
-from tobrot import ARIA_TWO_STARTED_PORT, CUSTOM_FILE_NAME as CUSTOM_PREFIX, EDIT_SLEEP_TIME_OUT, LOGGER, UPDATES_CHANNEL, \
+from tobrot import ARIA_TWO_STARTED_PORT, CUSTOM_PREFIX, CUSTOM_SUFFIX, EDIT_SLEEP_TIME_OUT, LOGGER, UPDATES_CHANNEL, \
                    MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START, CLONE_COMMAND_G, user_settings_lock, user_settings, LEECH_LOG, \
                    BOT_PM, LEECH_INVITE, EXCEP_CHATS
 from tobrot.helper_funcs.create_compressed_archive import create_archive, get_base_name, unzip_me
@@ -55,25 +55,36 @@ async def aria_start():
     )
 
 def __changeFileName(to_upload_file, u_id):
-    defDic = ["", "", "", 0, ""]
-    preDicData = PRE_DICT.get(u_id, defDic)
+    global CUSTOM_PREFIX, CUSTOM_SUFFIX
+    preDicData = PRE_DICT.get(u_id, ["", "", "", 0, ""])
     prefix, filename_, suffix, no, filter = preDicData[0], preDicData[1], preDicData[2], preDicData[3], preDicData[4]
-    CUSTOM_PREFIX = prefix
-    CUSTOM_SUFFIX = suffix
+    if not CUSTOM_PREFIX: CUSTOM_PREFIX = prefix
+    if not CUSTOM_SUFFIX: CUSTOM_SUFFIX = suffix
     if filter:
         if not filter.startswith("|"):
             filter = f"|{filter}"
         slit = filter.split("|")
-        if not opath.isfile(to_upload_file):
+        if opath.isfile(to_upload_file):
+            __newFileName = to_upload_file
+            for rep in range(1, len(slit)):
+                args = slit[rep].split(":")
+                if len(args) == 3:
+                    __newFileName = __newFileName.replace(args[0], args[1], int(args[2]))
+                else:
+                    __newFileName = __newFileName.replace(args[0], args[1])
+            orename(to_upload_file, __newFileName)
+            to_upload_file = __newFileName
+        else:
             for root, _, files in owalk(to_upload_file):
                 for org in files:
                     p_name = f"{root}/{org}"
+                    __newFileName = org
                     for rep in range(1, len(slit)):
                         args = slit[rep].split(":")
                         if len(args) == 3:
-                            __newFileName = org.replace(args[0], args[1], int(args[2]))
+                            __newFileName = __newFileName.replace(args[0], args[1], int(args[2]))
                         else:
-                            __newFileName = org.replace(args[0], args[1])
+                            __newFileName = __newFileName.replace(args[0], args[1])
                     n_name = f"{root}/{__newFileName}"
                     orename(p_name, n_name)
 

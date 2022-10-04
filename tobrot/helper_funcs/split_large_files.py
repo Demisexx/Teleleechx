@@ -13,10 +13,10 @@ import time
 
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-from tobrot import LOGGER, MAX_TG_SPLIT_FILE_SIZE, SP_LIT_ALGO_RITH_M
+from tobrot import LOGGER, SP_LIT_ALGO_RITH_M
 
 
-async def split_large_files(input_file):
+async def split_large_files(input_file, MAX_TG_SPLIT_FILE_SIZE):
     working_directory = os.path.dirname(os.path.abspath(input_file))
     new_working_directory = os.path.join(working_directory, str(time.time()))
 
@@ -30,28 +30,21 @@ async def split_large_files(input_file):
         if metadata.has("duration"):
             total_duration = metadata.get("duration").seconds
 
-        LOGGER.info(total_duration)
         total_file_size = os.path.getsize(input_file)
         LOGGER.info(total_file_size)
         minimum_duration = (total_duration / total_file_size) * (MAX_TG_SPLIT_FILE_SIZE)
         minimum_duration = int(minimum_duration)
 
-        LOGGER.info(minimum_duration)
         start_time = 0
         end_time = minimum_duration
         base_name = os.path.basename(input_file)
         input_extension = base_name.split(".")[-1]
-        LOGGER.info(input_extension)
 
         i = 0
         flag = False
 
         while end_time <= total_duration:
-            LOGGER.info(i)
-            parted_file_name = "{}_PART_{}.{}".format(
-                str(base_name), str(i).zfill(5), str(input_extension)
-            )
-
+            parted_file_name = f"{base_name}_part{i.zfill(5)}.{input_extension}"
             output_file = os.path.join(new_working_directory, parted_file_name)
             LOGGER.info(output_file)
             LOGGER.info(
@@ -61,7 +54,6 @@ async def split_large_files(input_file):
             )
             LOGGER.info(f"Start time {start_time}, End time {end_time}, Itr {i}")
 
-            # adding offset of 3 seconds to ensure smooth playback
             start_time = end_time - 3
             end_time = end_time + minimum_duration
             i = i + 1
@@ -73,7 +65,6 @@ async def split_large_files(input_file):
                 break
 
     elif SP_LIT_ALGO_RITH_M.lower() == "hjs":
-        # handle normal files here
         o_d_t = os.path.join(new_working_directory, os.path.basename(input_file))
         o_d_t = o_d_t + "."
         file_genertor_command = [

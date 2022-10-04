@@ -15,7 +15,7 @@ from random import choice
 from asyncio import sleep as asleep, subprocess, create_subprocess_shell
 from io import BytesIO, StringIO
 from os import path as opath, remove as oremove
-from shutil import disk_usage
+from psutil import disk_usage
 from time import time, sleep as tsleep
 from traceback import format_exc
 from psutil import virtual_memory, cpu_percent, net_io_counters
@@ -23,7 +23,7 @@ from psutil import virtual_memory, cpu_percent, net_io_counters
 from pyrogram.errors import FloodWait, MessageIdInvalid, MessageNotModified
 from pyrogram import enums, Client
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto, Message
-from tobrot.plugins import getUserOrChaDetails, getUserName
+from tobrot.plugins import getUserOrChaDetails, getUserName, progressBar
 from tobrot.helper_funcs.admin_check import AdminCheck
 from tobrot import AUTH_CHANNEL, BOT_START_TIME, LOGGER, MAX_MESSAGE_LENGTH, user_specific_config, \
                    gid_dict, _lock, EDIT_SLEEP_TIME_OUT, FINISHED_PROGRESS_STR, UN_FINISHED_PROGRESS_STR, \
@@ -58,31 +58,24 @@ async def upload_as_video(client, message):
         UPDATES_CHANNEL = UPDATES_CHANNEL
     ))
 
-def progress_bar(percentage):
-    p_used, p_total = '●', '○'
-    try: percentage=int(percentage)
-    except: percentage = 0
-    return ''.join(p_used if i <= percentage // 10 else p_total for i in range(10))
-
 def bot_button_stats():
     hr, mi, se = up_time(time() - BOT_START_TIME)
-    total, used, free = disk_usage(".")
+    total, used, free, disk = disk_usage("/")
     ram = virtual_memory().percent
     cpu = cpu_percent()
     total = humanbytes(total)
     used = humanbytes(used)
     free = humanbytes(free)
-    used_percent = (int(float(used[:-3])) / int(float(total[:-3]))) * 100
     sent = humanbytes(net_io_counters().bytes_sent)
     recv = humanbytes(net_io_counters().bytes_recv)
     return f'''
 ┏━━━━ 𝗕𝗼𝘁 𝗦𝘁𝗮𝘁𝘀 ━━━━━╻
-┃ ᑕᑭᑌ: {progress_bar(cpu)} {cpu}% 
-┃ ᖇᗩᗰ: {progress_bar(ram)} {ram}%  
+┃ ᑕᑭᑌ: {progressBar(cpu)} {cpu}% 
+┃ ᖇᗩᗰ: {progressBar(ram)} {ram}%  
 ┃ T-ᗪᒪ: {sent} ┃ T-ᑌᒪ: {recv}
 ┃ ᑌᑭ : {hr}h {mi}m {se}s
 ┃ T: {total} ┃ ᖴ: {free}
-┃ ᗪIՏK: {progress_bar(used_percent)} {int(used_percent)}%
+┃ ᗪIՏK: {progressBar(disk)} {disk}%
 ┗━━━━━━━━━━━━━━━━╹'''
 
 async def status_message_f(client: Client, message: Message):

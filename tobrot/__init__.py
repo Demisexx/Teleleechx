@@ -22,10 +22,6 @@ from sys import exit
 from dotenv import load_dotenv
 from pyrogram import Client
 
-# Adding Files and Data >>>>>>>>
-run(["wget", "-O", "/app/tobrot/aria2/dht.dat", "https://github.com/P3TERX/aria2.conf/raw/master/dht.dat"])
-run(["wget", "-O", "/app/tobrot/aria2/dht6.dat", "https://github.com/P3TERX/aria2.conf/raw/master/dht6.dat"])
-
 run(["chmod", "+x", "extract"])
 
 def getVar(var: str, val):
@@ -82,6 +78,8 @@ IMDB_TEMPLATE = {}
 ANILIST_TEMPLATE = {}
 USER_THEMES = {}
 AVAILABLE_THEMES = {}
+USER_LOGS = {}
+AUTO_USERS = {}
 __version__ = "2.8.3"
 
 TG_BOT_TOKEN, APP_ID, API_HASH = [], [], []
@@ -121,12 +119,10 @@ for imp in ["TG_BOT_TOKEN1", "APP_ID1", "API_HASH1", "OWNER_ID", "AUTH_CHANNEL"]
         exit()
 
 # Telegram Max File Upload Size >>>>>>>>>>
-MAX_FILE_SIZE = 50000000
 TG_MAX_FILE_SIZE = 2097152000
 TG_PRM_FILE_SIZE = 4194304000
-FREE_USER_MAX_FILE_SIZE = 50000000
 
-# chunk size that should be used with requests
+# Chunk Size that should be used with Requests >>>>>>>>>>
 CHUNK_SIZE = int(getVar("CHUNK_SIZE", "128"))
 DEF_THUMB_NAIL_VID_S = getVar("DEF_THUMB_NAIL_VID_S", "")
 MAX_MESSAGE_LENGTH = 4096
@@ -138,17 +134,18 @@ PROCESS_MAX_TIMEOUT = 3600
 SP_LIT_ALGO_RITH_M = getVar("SP_LIT_ALGO_RITH_M", "hjs")
 ARIA_TWO_STARTED_PORT = int(getVar("ARIA_TWO_STARTED_PORT", "6800"))
 EDIT_SLEEP_TIME_OUT = int(getVar("EDIT_SLEEP_TIME_OUT", "10"))
-MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START = int(getVar("MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START", 600))
-MAX_TG_SPLIT_FILE_SIZE = int(getVar("MAX_TG_SPLIT_FILE_SIZE", "2095242840"))
+MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START = int(getVar("MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START", 1200))
+SPLIT_SIZE = getVar("SPLIT_SIZE", None)
 
 # Vars for the Display Progress >>>>>>>>
 FINISHED_PROGRESS_STR = getVar("FINISHED_PROGRESS_STR", "■")
 HALF_FINISHED = getVar("HALF_FINISHED", "◩")
 UN_FINISHED_PROGRESS_STR = getVar("UN_FINISHED_PROGRESS_STR", "□")
 
-# Add Offensive API >>>>>>>>
+# Add Offensive API & Filename Parsing >>>>>>>>
 TG_OFFENSIVE_API = getVar("TG_OFFENSIVE_API", None)
-CUSTOM_FILE_NAME = getVar("CUSTOM_FILE_NAME", "")
+CUSTOM_PREFIX = getVar("CUSTOM_PREFIX", "")
+CUSTOM_SUFFIX = getVar("CUSTOM_SUFFIX", "")
 
 #Bot Command [Leech]  >>>>>>>>>>>
 LEECH_COMMAND = getVar("LEECH_COMMAND", "leech")
@@ -202,6 +199,8 @@ INDEX_SCRAPE = getVar("INDEX_SCRAPE", "indexscrape")
 UPTOBOX_TOKEN = getVar("UPTOBOX_TOKEN", "")
 EMAIL = getVar("EMAIL", "")
 PWSSD = getVar("PWSSD", "")
+LARAVEL_SESSION = getVar("LARAVEL_SESSION", "")
+XSRF_TOKEN = getVar("XSRF_TOKEN", "")
 GDRIVE_FOLDER_ID = getVar("GDRIVE_FOLDER_ID", "")
 CRYPT = getVar("CRYPT", "")
 HUB_CRYPT = getVar("HUB_CRYPT", "")
@@ -251,8 +250,10 @@ LEECH_LOG = getVar("LEECH_LOG", "")
 LEECH_INVITE = getVar("LEECH_INVITE", "False")
 EX_LEECH_LOG = [int(chats) if (' ' not in getVar('EX_LEECH_LOG', '')) else int(chats) for chats in getVar('EX_LEECH_LOG', '').split()]
 EXCEP_CHATS = [int(chats) if (' ' not in getVar('EXCEP_CHATS', '')) else int(chats) for chats in getVar('EXCEP_CHATS', '').split()]
-BOT_PM = getVar("BOT_PM", False)
-AUTO_LEECH = getVar("AUTO_LEECH", False)
+BOT_PM = getVar("BOT_PM", "False")
+BOT_PM = True if BOT_PM.lower() == "true" else False
+AUTO_LEECH = getVar("AUTO_LEECH", "False")
+AUTO_LEECH = True if AUTO_LEECH.lower() == "true" else False
 
 #Status Photos & Pixabay API >>>>>>>>>>
 PICS_LIST = (getVar("PICS", "")).split()
@@ -272,7 +273,14 @@ FSUB_CHANNEL = getVar("FSUB_CHANNEL", "")
 
 # Quotes in Restart Message & Utils >>>>>>>>
 TIMEZONE = getVar("TIMEZONE", "Asia/Kolkata")
-RDM_QUOTE = getVar("RDM_QUOTE", True)
+RDM_QUOTE = getVar("RDM_QUOTE", "False")
+RDM_QUOTE = True if RDM_QUOTE.lower() == "true" else False
+
+# Buttons in Start Message >>>>>>>>
+START_BTN1 = getVar("START_BTN1", "🛃 FXTorrentz 🛃")
+START_URL1 = getVar("START_URL1", "https://t.me/FXTorrentz")
+START_BTN2 = getVar("START_BTN2", "🔍 Source Code")
+START_URL2 = getVar("START_URL2", "https://github.com/5MysterySD/Tele-LeechX")
 
 # Database Handler >>>>>>>>
 DB_URI = getVar("DATABASE_URL", "")

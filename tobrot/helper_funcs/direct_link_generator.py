@@ -9,6 +9,7 @@
 
 
 import json
+import hashlib
 import re
 import urllib.parse
 import lk21
@@ -26,11 +27,12 @@ from js2py import EvalJs
 from bs4 import BeautifulSoup
 from base64 import standard_b64encode
 
-from tobrot import UPTOBOX_TOKEN, LOGGER, EMAIL, PWSSD, CRYPT, GDRIVE_FOLDER_ID, HUB_CRYPT, DRIVEFIRE_CRYPT, KATDRIVE_CRYPT, KOLOP_CRYPT, DRIVEBUZZ_CRYPT, GADRIVE_CRYPT
+from tobrot import UPTOBOX_TOKEN, LOGGER, EMAIL, PWSSD, CRYPT, GDRIVE_FOLDER_ID, HUB_CRYPT, DRIVEFIRE_CRYPT, KATDRIVE_CRYPT, KOLOP_CRYPT, DRIVEBUZZ_CRYPT, GADRIVE_CRYPT, LARAVEL_SESSION, XSRF_TOKEN
 from tobrot.helper_funcs.exceptions import DirectDownloadLinkException
 from tobrot.plugins import is_appdrive_link, is_gdtot_link 
 
 drive_list = ['driveapp.in', 'gdflix.pro', 'drivelinks.in', 'drivesharer.in', 'driveflix.in', 'drivebit.in', 'drivehub.in', 'driveace.in']
+bypass_vip_list = ['exe.io', 'exey.io', 'sub2unlock.net', 'sub2unlock.com', 'rekonise.com', 'letsboost.net', 'ph.apps2app.com', 'mboost.me', 'shortconnect.com', 'sub4unlock.com', 'ytsubme.com', 'bit.ly', 'social-unlock.com', 'boost.ink', 'goo.gl', 'shrto.ml', 't.co', 'tinyurl.com']
 
 def url_link_generate(text_url: str):
     ### Direct Links Generator ++++
@@ -147,6 +149,36 @@ def url_link_generate(text_url: str):
         return wetransfer(text_url)
     elif "corneey.com" in text_url or "sh.st" in text_url:
         return shorte_st(text_url)
+    elif "psa.pm" in text_url:
+        return psa_bypasser(text_url)
+    elif "upload.ee" in text_url:
+        return uploadee(text_url)
+    elif "dropbox.com" in text_url:
+        return dropbox(text_url)
+    elif "megaup.net" in text_url:
+        return megaup(text_url)
+    elif "mediafire.com" in text_url:
+        return mediafire(text_url)
+    elif "filecrypt.ws" in text_url:
+        return filecrypt(text_url)
+    elif "shareus.io" in text_url:
+        return shareus(text_url)
+    elif "shortlingly.in" in text_url:
+        return shortlingly(text_url)
+    elif "gyanilinks.com" in text_url:
+        return gyanilinks(text_url)
+    elif "pixl" in text_url:
+        return pixl(text_url)
+    elif "safeurl.sirigan.my.id" in text_url:
+        return siriganbypass(text_url)
+    elif "sharer.pw" in text_url:
+        return sharer_pw(text_url)
+    elif any(x in text_url for x in bypass_vip_list):
+        return bypass_vip(text_url)
+    elif "rocklinks.net" in text_url:
+        return rocklinks(text_url)
+    elif "olamovies.ink" in text_url:
+        return olamovies(text_url)
     else:
         raise DirectDownloadLinkException(f'UnSupported URL : {text_url}')
         ### Direct Links Generator ----
@@ -724,31 +756,39 @@ def linkvertise(url: str):
     data = client.post(url_submit, json=options).json()
     return data
 
-
-def droplink(url):
-    client = requests.Session()
+    '''client = requests.Session()
     res = client.get(url)
-
     ref = re.findall("action[ ]{0,}=[ ]{0,}['|\"](.*?)['|\"]", res.text)[0]
-
     h = {'referer': ref}
     res = client.get(url, headers=h)
-
     bs4 = BeautifulSoup(res.content, 'lxml')
     inputs = bs4.find_all('input')
     data = { input.get('name'): input.get('value') for input in inputs }
-
     h = {
         'content-type': 'application/x-www-form-urlencoded',
         'x-requested-with': 'XMLHttpRequest'
     }
     p = urlparse(url)
     final_url = f'{p.scheme}://{p.netloc}/links/go'
-
     time.sleep(3.1)
     res = client.post(final_url, data=data, headers=h).json()
+    return res'''
 
-    return res
+def droplink(url):
+    api = "https://api.emilyx.in/api"
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    resp = client.get(url)
+    if resp.status_code == 404:
+        return "File not found/The link you entered is wrong!"
+    try:
+        resp = client.post(api, json={"type": "droplink", "url": url})
+        res = resp.json()
+    except Exception:
+        return "API UnResponsive / Invalid Link !"
+    if res["success"] is True:
+        return res["url"]
+    else:
+        return res["msg"]
 
 def gofile(url: str):
     api_uri = 'https://api.gofile.io'
@@ -1324,3 +1364,417 @@ def gadrive_dl(url):
     info_parsed['src_url'] = url
 
     return info_parsed
+
+def try2link_bypass(url):
+	client = cloudscraper.create_scraper(allow_brotli=False)
+	
+	url = url[:-1] if url[-1] == '/' else url
+	
+	params = (('d', int(time.time()) + (60 * 4)),)
+	r = client.get(url, params=params, headers= {'Referer': 'https://newforex.online/'})
+	
+	soup = BeautifulSoup(r.text, 'html.parser')
+	inputs = soup.find(id="go-link").find_all(name="input")
+	data = { input.get('name'): input.get('value') for input in inputs }	
+	time.sleep(7)
+	
+	headers = {'Host': 'try2link.com', 'X-Requested-With': 'XMLHttpRequest', 'Origin': 'https://try2link.com', 'Referer': url}
+	
+	bypassed_url = client.post('https://try2link.com/links/go', headers=headers,data=data)
+	return bypassed_url.json()["url"]
+		
+
+def try2link_scrape(url):
+	client = cloudscraper.create_scraper(allow_brotli=False)	
+	h = {
+	'upgrade-insecure-requests': '1', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36',
+	}
+	res = client.get(url, cookies={}, headers=h)
+	url = 'https://try2link.com/'+re.findall('try2link\.com\/(.*?) ', res.text)[0]
+	return try2link_bypass(url)
+    
+
+def psa_bypasser(psa_url):
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    r = client.get(psa_url)
+    soup = BeautifulSoup(r.text, "html.parser").find_all(class_="dropshadowboxes-drop-shadow dropshadowboxes-rounded-corners dropshadowboxes-inside-and-outside-shadow dropshadowboxes-lifted-both dropshadowboxes-effect-default")
+    links = ""
+    for link in soup:
+        try:
+            exit_gate = link.a.get("href")
+            links = links + try2link_scrape(exit_gate) + '\n'
+        except: pass
+    return links
+
+def uploadee(url: str) -> str:
+    """ uploadee direct link generator
+    By https://github.com/iron-heart-x"""
+    try:
+        soup = BeautifulSoup(rget(url).content, 'lxml')
+        sa = soup.find('a', attrs={'id':'d_l'})
+        return sa['href']
+    except:
+        raise DirectDownloadLinkException(f"ERROR: Failed to acquire download URL from upload.ee for : {url}")
+
+def dropbox(url):
+    return url.replace("www.","").replace("dropbox.com","dl.dropboxusercontent.com").replace("?dl=0","")
+
+def megaup(url):
+    api = "https://api.emilyx.in/api"
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    resp = client.get(url)
+    if resp.status_code == 404:
+        return "File not found/The link you entered is wrong!"
+    try:
+        resp = client.post(api, json={"type": "megaup", "url": url})
+        res = resp.json()
+    except Exception:
+        return "API UnResponsive / Invalid Link !"
+    if res["success"] is True:
+        return res["url"]
+    else:
+        return res["msg"]
+
+def mediafire(url: str) -> str:
+    """ MediaFire direct link generator """
+    try:
+        link = re_findall(r'\bhttps?://.*mediafire\.com\S+', url)[0]
+    except IndexError:
+        raise DirectDownloadLinkException("No MediaFire links found")
+    page = BeautifulSoup(rget(link).content, 'lxml')
+    info = page.find('a', {'aria-label': 'Download file'})
+    return info.get('href')
+
+def getlinks(dlc,client):
+    headers = {
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+    'Accept': 'application/json, text/javascript, */*',
+    'Accept-Language': 'en-US,en;q=0.5',
+    # 'Accept-Encoding': 'gzip, deflate',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Origin': 'http://dcrypt.it',
+    'Connection': 'keep-alive',
+    'Referer': 'http://dcrypt.it/',
+    }
+
+    data = {
+        'content': dlc,
+    }
+
+    response = client.post('http://dcrypt.it/decrypt/paste', headers=headers, data=data).json()["success"]["links"]
+    links = ""
+    for link in response:
+        links = links + link + "\n"
+    return links[:-1]
+
+
+def filecrypt(url):
+
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    headers = {
+    "authority": "filecrypt.co",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "accept-language": "en-US,en;q=0.9",
+    "cache-control": "max-age=0",
+    "content-type": "application/x-www-form-urlencoded",
+    "dnt": "1",
+    "origin": "https://filecrypt.co",
+    "referer": url,
+    "sec-ch-ua": '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "Windows",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36" 
+    }
+    
+
+    resp = client.get(url, headers=headers)
+    soup = BeautifulSoup(resp.content, "html.parser")
+
+    buttons = soup.find_all("button")
+    for ele in buttons:
+        line = ele.get("onclick")
+        if line !=None and "DownloadDLC" in line:
+            dlclink = "https://filecrypt.co/DLC/" + line.split("DownloadDLC('")[1].split("'")[0] + ".html"
+            break
+
+    resp = client.get(dlclink,headers=headers)
+    return getlinks(resp.text,client)
+
+def shareus(url):
+    token = url.split("=")[-1]
+    bypassed_url = "https://us-central1-my-apps-server.cloudfunctions.net/r?shortid="+ token
+    response = requests.get(bypassed_url).text
+    return response
+
+def shortlingly(url):
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    if 'shortingly.me' in url:
+        DOMAIN = "https://go.techyjeeshan.xyz"
+    else:
+        return "Incorrect Link"
+
+    url = url[:-1] if url[-1] == '/' else url
+
+    code = url.split("/")[-1]
+    
+    final_url = f"{DOMAIN}/{code}"
+
+    resp = client.get(final_url)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    
+    try: inputs = soup.find(id="go-link").find_all(name="input")
+    except: return "Incorrect Link"
+    
+    data = { input.get('name'): input.get('value') for input in inputs }
+
+    h = { "x-requested-with": "XMLHttpRequest" }
+    
+    time.sleep(5)
+    r = client.post(f"{DOMAIN}/links/go", data=data, headers=h)
+    try:
+        return r.json()['url']
+    except: return "Something went wrong :("
+
+def gyanilinks(url):
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    if 'gtlinks.me' in url:
+        DOMAIN = "https://go.bloggertheme.xyz"
+    else:
+        return "Incorrect Link"
+
+    url = url[:-1] if url[-1] == '/' else url
+
+    code = url.split("/")[-1]
+    
+    final_url = f"{DOMAIN}/{code}"
+
+    resp = client.get(final_url)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    
+    try: inputs = soup.find(id="go-link").find_all(name="input")
+    except: return "Incorrect Link"
+    
+    data = { input.get('name'): input.get('value') for input in inputs }
+
+    h = { "x-requested-with": "XMLHttpRequest" }
+    
+    time.sleep(5)
+    r = client.post(f"{DOMAIN}/links/go", data=data, headers=h)
+    try:
+        return r.json()['url']
+    except: return "Something went wrong :("
+
+def pixl(url):
+    count = 1
+    dl_msg = ""
+    currentpage = 1
+    settotalimgs = True
+    totalimages = ""
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    resp = client.get(url)
+    if resp.status_code == 404:
+        return "File not found/The link you entered is wrong!"
+    soup = BeautifulSoup(resp.content, "html.parser")
+    if "album" in url and settotalimgs:
+        totalimages = soup.find("span", {"data-text": "image-count"}).text
+        settotalimgs = False
+    thmbnailanch = soup.findAll(attrs={"class": "--media"})
+    links = soup.findAll(attrs={"data-pagination": "next"})
+    try:
+        url = links[0].attrs["href"]
+    except BaseException:
+        url = None
+    for ref in thmbnailanch:
+        imgdata = client.get(ref.attrs["href"])
+        if not imgdata.status_code == 200:
+            time.sleep(5)
+            continue
+        imghtml = BeautifulSoup(imgdata.text, "html.parser")
+        downloadanch = imghtml.find(attrs={"class": "btn-download"})
+        currentimg = downloadanch.attrs["href"]
+        currentimg = currentimg.replace(" ", "%20")
+        dl_msg += f"{count}. {currentimg}\n"
+        count += 1
+    currentpage += 1
+    fld_msg = f"Your provided Pixl.is link is of Folder and I've Found {count - 1} files in the folder.\n"
+    fld_link = f"\nFolder Link: {url}\n"
+    final_msg = fld_link + "\n" + fld_msg + "\n" + dl_msg
+    return final_msg
+
+def siriganbypass(url):
+    client = requests.Session()
+    res = client.get(url)
+    url = res.url.split('=', maxsplit=1)[-1]
+
+    while True:
+        try: url = base64.b64decode(url).decode('utf-8')
+        except: break
+
+    return url.split('url=')[-1]
+
+def parse_info_sharer(res):
+    f = re.findall(">(.*?)<\/td>", res.text)
+    info_parsed = {}
+    for i in range(0, len(f), 3):
+        info_parsed[f[i].lower().replace(' ', '_')] = f[i+2]
+    return info_parsed
+
+def sharer_pw(url, forced_login=False):
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    client.cookies.update({
+        "XSRF-TOKEN": XSRF_TOKEN,
+        "laravel_session": LARAVEL_SESSION
+    })
+    res = client.get(url)
+    token = re.findall("_token\s=\s'(.*?)'", res.text, re.DOTALL)[0]
+    ddl_btn = etree.HTML(res.content).xpath("//button[@id='btndirect']")
+    info_parsed = parse_info_sharer(res)
+    info_parsed['error'] = True
+    info_parsed['src_url'] = url
+    info_parsed['link_type'] = 'login'
+    info_parsed['forced_login'] = forced_login
+    headers = {
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'x-requested-with': 'XMLHttpRequest'
+    }
+    data = {
+        '_token': token
+    }
+    if len(ddl_btn):
+        info_parsed['link_type'] = 'direct'
+    if not forced_login:
+        data['nl'] = 1
+    try: 
+        res = client.post(url+'/dl', headers=headers, data=data).json()
+    except:
+        return info_parsed
+    if 'url' in res and res['url']:
+        info_parsed['error'] = False
+        info_parsed['gdrive_link'] = res['url']
+    if len(ddl_btn) and not forced_login and not 'url' in info_parsed:
+        # retry download via login
+        return sharer_pw(url, forced_login=True)
+    return info_parsed["gdrive_link"]
+
+def bypass_vip(url):
+    try:
+        payload = {"url": url}
+        url_bypass = requests.post("https://api.bypass.vip/", data=payload).json()
+        bypassed = url_bypass["destination"]
+        return bypassed
+    except:
+        return "Could not Bypass your URL :("
+
+def rocklinks(url):
+    client = cloudscraper.create_scraper(allow_brotli=False)
+    if 'rocklinks.net' in url:
+        DOMAIN = "https://blog.disheye.com"
+    else:
+        DOMAIN = "https://rocklinks.net"
+
+    url = url[:-1] if url[-1] == '/' else url
+
+    code = url.split("/")[-1]
+    if 'rocklinks.net' in url:
+        final_url = f"{DOMAIN}/{code}?quelle=" 
+    else:
+        final_url = f"{DOMAIN}/{code}"
+
+    resp = client.get(final_url)
+    soup = BeautifulSoup(resp.content, "html.parser")
+    
+    try: inputs = soup.find(id="go-link").find_all(name="input")
+    except: return "Incorrect Link"
+    
+    data = { input.get('name'): input.get('value') for input in inputs }
+
+    h = { "x-requested-with": "XMLHttpRequest" }
+    
+    time.sleep(10)
+    r = client.post(f"{DOMAIN}/links/go", data=data, headers=h)
+    try:
+        return r.json()['url']
+    except: return "Something went wrong :("
+
+def olamovies(url):
+    #print("this takes time, you might want to take a break.")
+    headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Referer': url,
+            'Alt-Used': 'olamovies.ink',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-User': '?1',
+        }
+
+    client = cloudscraper.create_scraper()
+    res = client.get(url)
+    soup = BeautifulSoup(res.text,"html.parser")
+    soup = soup.findAll("div", class_="wp-block-button")
+
+    outlist = []
+    for ele in soup:
+        outlist.append(ele.find("a").get("href"))
+
+    slist = []
+    for ele in outlist:
+        try:
+            key = ele.split("?key=")[1].split("&id=")[0].replace("%2B","+").replace("%3D","=").replace("%2F","/")
+            id = ele.split("&id=")[1]
+        except:
+            continue
+        
+        count = 3
+        params = { 'key': key, 'id': id}
+        soup = "None"
+        # print("trying","https://olamovies.ink/download/&key="+key+"&id="+id)
+
+        while 'rocklinks.net' not in soup and "try2link.com" not in soup:
+            res = client.get("https://olamovies.ink/download/", params=params, headers=headers)
+            soup = BeautifulSoup(res.text,"html.parser")
+            soup = soup.findAll("a")[0].get("href")
+            if soup != "":
+                if "try2link.com" in soup or 'rocklinks.net' in soup:
+                    # print("added", soup)
+                    slist.append(soup)
+                else:
+                    # print(soup, "not addded")
+                    pass
+            else:
+                if count == 0:
+                    # print('moving on')
+                    break
+                else:
+                    count -= 1
+                    # print("retrying")
+                
+            # print("waiting 10 secs")
+            time.sleep(10)
+
+    #print(slist)
+    final = []
+    for ele in slist:
+        if "rocklinks.net" in ele:
+            final.append(rocklinks(ele))
+        elif "try2link.com" in ele:
+            final.append(try2link_bypass(ele))
+        else:
+            # print(ele)
+            pass
+    #print(final)
+    links = ""
+    for ele in final:
+        links = links + ele + "\n"
+    #print("Bypassed Links")
+    #print(links)
+    return links

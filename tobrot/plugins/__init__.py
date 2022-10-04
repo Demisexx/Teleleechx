@@ -4,7 +4,7 @@ from shutil import rmtree
 from re import match as rmatch
 from urllib.parse import unquote, quote
 
-from tobrot import DOWNLOAD_LOCATION, LOGGER, app
+from tobrot import DOWNLOAD_LOCATION, LOGGER, app, AUTO_LEECH
 from tobrot.helper_funcs.display_progress import humanbytes
 from typing import Tuple
 
@@ -66,19 +66,19 @@ def getDetails(client, message, func_txt: str):
     link_send = message.text.split(" ", maxsplit=1)
     reply_to = message.reply_to_message
     txtCancel = False
-    text__ = f"<i>⚡️{func_txt} Initiated⚡️</i>\n\n👤 <b>User</b> : <a href='tg://user?id={g_id}'>{u_men}</a>\n🆔 <b>User ID</b> : #ID{g_id}\n"
-    if len(link_send) > 1:
-        link = link_send[1]
+    text__ = f"<i>⚡️{func_txt} Initiated⚡️</i>\n┃\n┣👤 <b>User</b> : <a href='tg://user?id={g_id}'>{u_men}</a>\n┣🆔 <b>User ID</b> : #ID{g_id}\n"
+    if len(link_send) > 1 or (AUTO_LEECH and len(link_send) == 1):
+        link = link_send[0] if AUTO_LEECH else link_send[1]
         if link.lower().startswith("magnet:"):
-            text__ += f"🧲 <b>Magnet Link Details</b> :  \n{magnet_parse(link)}"
+            text__ += f"┗🧲 <b>Magnet Link Details</b> :  \n{magnet_parse(link)}"
         elif link.lower().startswith("http") and "|" not in link:
-            text__ += f"🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>"
+            text__ += f"┗🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>"
         elif link.lower().startswith("http") and "|" in link:
             splitData = link.split("|", 1)
             link = splitData[0]
-            text__ += f"🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>\n🗳 <b>Custom Name</b> :<code>{splitData[1]}</code>"
+            text__ += f"┗🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>\n🗳 <b>Custom Name</b> :<code>{splitData[1]}</code>"
         else:
-            text__ += f"🔗 <b>Link</b> :  <code>{link}</code>"
+            text__ += f"┗🔗 <b>Link</b> :  <code>{link}</code>"
     elif reply_to is not None:
         if reply_to.media:
             if reply_to.document:
@@ -106,11 +106,11 @@ def getDetails(client, message, func_txt: str):
                 link, cusfname = cusfnam[0], cusfnam[1]
             LOGGER.info(cusfname)
             if cusfname != "" and link.lower().startswith("http"):
-                text__ += f"🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>\n🗳 <b>Custom Name</b> :<code>{cusfname}</code>"
+                text__ += f"┗🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>\n🗳 <b>Custom Name</b> :<code>{cusfname}</code>"
             elif link.lower().startswith("http"):
-                text__ += f"🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>"
+                text__ += f"┗🔗 <b>Link</b> :  <a href='{link.strip()}'>Click Here</a>"
             else:
-                text__ += f"🔗 <b>Link</b> :  <code>{link}</code>"
+                text__ += f"┗🔗 <b>Link</b> :  <code>{link}</code>"
     else:
         txtCancel = True
         link = "N/A"
@@ -125,3 +125,9 @@ def getUserOrChaDetails(mess):
         uid = str(mess.chat.id)[4:]
         u_tag = (mess.chat.title if mess.author_signature is None else mess.author_signature)
     return uid, u_tag
+
+def progressBar(percentage):
+    p_used, p_total = '▰', '▱'
+    try: percentage=int(percentage)
+    except: percentage = 0
+    return ''.join(p_used if i <= percentage // 10 else p_total for i in range(10))

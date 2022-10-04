@@ -8,21 +8,21 @@
 # All Right Reserved
 
 from requests import get as rget
-from os import path as opath, environ as env
+from os import path as opath, environ as env, listdir
 from pkg_resources import working_set
 from logging import FileHandler, StreamHandler, INFO, basicConfig, error as log_error, info as log_info
 from subprocess import run as srun, call as scall
 from dotenv import load_dotenv
 
-from tobrot import LOG_FILE_NAME
-
-if opath.exists(LOG_FILE_NAME):
-    with open(LOG_FILE_NAME, 'r+') as f:
-        f.truncate(0)
+searchLogFile = listdir()
+for log in searchLogFile:
+    if log.endswith('Logs.txt'):
+        with open(log, 'r+') as f:
+              f.truncate(0)
 
 basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s [%(filename)s:%(lineno)d]',
                     datefmt="%d-%b-%y %I:%M:%S %p",
-                    handlers=[FileHandler(LOG_FILE_NAME), StreamHandler()],
+                    handlers=[FileHandler('Logs.txt'), StreamHandler()],
                     level=INFO)
 
 CONFIG_FILE_URL = env.get('CONFIG_FILE_URL')
@@ -44,7 +44,7 @@ except:
 load_dotenv('config.env', override=True)
 
 ## Update Packages ++++
-if env.get('UPDATE_EVERYTHING_WHEN_RESTART', 'False').lower() == 'true':
+if env.get('UPDATE_PACKAGES', 'False').lower() == 'true':
     packages = [dist.project_name for dist in working_set]
     scall("pip install --upgrade " + ' '.join(packages), shell=True)
 ## Update Packages ----

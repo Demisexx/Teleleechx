@@ -27,43 +27,32 @@ async def button(bot, update: CallbackQuery):
     try:
         isAdmin = await AdminCheck(bot, update.message.chat.id, update.from_user.id)
     except Exception as err:
-        LOGGER.info(err)
+        LOGGER.error(err)
     if cb_data.startswith("gUPcancel"):
         cmf = cb_data.split("/")
         chat_id, mes_id, from_usr = cmf[1], cmf[2], cmf[3]
         if (int(update.from_user.id) == int(from_usr)) or isAdmin:
-            await bot.answer_callback_query(
-                update.id, text="Going to Cancel . . . 🛠", show_alert=False
-            )
+            await update.answer(text="Going to Cancel ... 🛠", show_alert=False)
             gDict[int(chat_id)].append(int(mes_id))
         else:
-            await bot.answer_callback_query(
-                callback_query_id=update.id,
-                text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛",
-                show_alert=True,
-                cache_time=0,
-            )
+            await update.answer(text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛", show_alert=True)
         return
     if "|" in cb_data:
-        await bot.answer_callback_query(
-            update.id, text="Processing . . . 🛠", show_alert=False
-        )
+        await update.answer(text="Processing . . . 🛠", show_alert=False)
         await youtube_dl_call_back(bot, update)
         return
     if cb_data.startswith("rclone"):
-        await bot.answer_callback_query(
-            update.id, text="choose rclone config...", show_alert=False
-        )
+        await update.answer(text="🛃 Choose RClone Config ...", show_alert=False)
         await rclone_button_callback(bot, update)
         return
     if cb_data.startswith("cancel"):
         if (update.from_user.id == update.message.reply_to_message.from_user.id) or g:
             await bot.answer_callback_query(
-                update.id, text="trying to cancel...", show_alert=False
+                update.id, text="🛠 Trying to Cancel ...", show_alert=False
             )
             if len(cb_data) > 1:
                 i_m_s_e_g = await update.message.reply_to_message.reply_text(
-                    "checking..?", quote=True
+                    "Checking..?", quote=True
                 )
                 aria_i_p = await aria_start()
                 g_id = cb_data.split()[-1]
@@ -85,19 +74,12 @@ async def button(bot, update: CallbackQuery):
                         f"Leech Cancelled by <a href='tg://user?id={update.from_user.id}'>{update.from_user.first_name}</a>"
                     )
                 except Exception as e:
-                    await i_m_s_e_g.edit_text("<i>FAILED</i>\n\n" + str(e) + "\n#error")
+                    await i_m_s_e_g.edit_text(f"<i>FAILED</i>\n\n{e}\n#Error")
         else:
-            await bot.answer_callback_query(
-                callback_query_id=update.id,
-                text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛",
-                show_alert=True,
-                cache_time=0,
-            )
+            await update.answer(text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛", show_alert=True)
     elif cb_data == "fuckingdo":
         if (update.from_user.id in AUTH_CHANNEL) or g:
-            await bot.answer_callback_query(
-                update.id, text="trying to delete...", show_alert=False
-            )
+            await update.answer(text="📇 Trying to Delete Local Files...", show_alert=False)
             g_d_list = [
                 "app.json",
                 "venv",
@@ -140,16 +122,9 @@ async def button(bot, update: CallbackQuery):
             else:
                 await update.message.edit_text("<i>⛔ Nothing to clear ⛔ \nAs Per I Get to Know !! </i>")
         else:
-            await bot.answer_callback_query(
-                callback_query_id=update.id,
-                text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛",
-                show_alert=True,
-                cache_time=0,
-            )    
+            await update.answer(text="⚠️ Opps ⚠️ \n I Got a False Visitor 🚸 !! \n\n 📛 Stay At Your Limits !!📛", show_alert=True)    
     elif cb_data == "fuckoff":
-        await bot.answer_callback_query(
-            update.id, text="Going to Cancel . . . 🔃", show_alert=False
-        )
+        await update.answer(text="Going to Cancel . . . 🔃", show_alert=False)
         await update.message.edit_text("<i>☢ Okay! ☢ \n\n ⌧ Don't Disturb Me !! </i>")
     elif cb_data == "openHelp_pg1":
         button_markup = InlineKeyboardMarkup(
@@ -287,17 +262,10 @@ async def button(bot, update: CallbackQuery):
     elif cb_data == "admin_close":
         isAdmin = await AdminCheck(bot, update.message.chat.id, update.from_user.id)
         if isAdmin:
-            await bot.answer_callback_query(
-                update.id, text="Closing . . . ⛔️", show_alert=False
-            )
+            await update.answer(text="Closing Status ... ⛔️", show_alert=False)
             await update.message.delete()
         else:
-            await bot.answer_callback_query(
-                callback_query_id=update.id,
-                text="⚠️ Only for Group Admins ⚠️",
-                show_alert=True,
-                cache_time=0,
-            )
+            await update.answer(text="⚠️ Only for Group Admins ⚠️", show_alert=True)
     elif cb_data == "stats":
         status_stats = bot_button_stats()
         await bot.answer_callback_query(
@@ -329,6 +297,7 @@ async def button(bot, update: CallbackQuery):
                 show_alert=True,
                 cache_time=0,
             )
+    await update.answer()
 
     '''
     elif cb_data == "":

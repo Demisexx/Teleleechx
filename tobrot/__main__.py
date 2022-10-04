@@ -16,9 +16,9 @@ from datetime import datetime
 from requests import get as rget
 from heroku3 import from_key as from_apikey
 
-from pyrogram import enums
+from pyrogram import enums, Client, filters, idle
+from pyrogram.errors import ChannelInvalid, PeerIdInvalid
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, BotCommand
-from pyrogram import filters, idle
 from pyrogram.handlers import CallbackQueryHandler, MessageHandler
 from sys import executable
 from subprocess import run as srun
@@ -28,7 +28,8 @@ from tobrot import OWNER_ID, SUDO_USERS, AUTH_CHANNEL, DOWNLOAD_LOCATION, GET_SI
                    GLEECH_UNZIP_COMMAND, GLEECH_ZIP_COMMAND, LOGGER, RENEWME_COMMAND, TELEGRAM_LEECH_UNZIP_COMMAND, \
                    TELEGRAM_LEECH_COMMAND, UPLOAD_COMMAND, GYTDL_COMMAND, GPYTDL_COMMAND, RCLONE_COMMAND, \
                    UPDATES_CHANNEL, LEECH_LOG, STRING_SESSION, SET_BOT_COMMANDS, RDM_QUOTE, INDEX_SCRAPE, TIMEZONE, \
-                   AUTO_LEECH, PICS_LIST, PIXABAY_API_KEY, PIXABAY_CATEGORY, PIXABAY_SEARCH
+                   AUTO_LEECH, PICS_LIST, PIXABAY_API_KEY, PIXABAY_CATEGORY, PIXABAY_SEARCH, START_BTN1, START_URL1, \
+                   START_BTN2, START_URL2
 if STRING_SESSION:
     from tobrot import userBot
 from tobrot.helper_funcs.download import down_load_media_f
@@ -41,14 +42,14 @@ from tobrot.plugins.imdb import imdb_search, imdb_callback
 from tobrot.plugins.torrent_search import searchhelp, nyaa_callback, nyaa_nop, nyaa_search, nyaa_search_sukebei, TorrentSearch, \
                                           RESULT_STR_1337, RESULT_STR_PIRATEBAY, RESULT_STR_TGX, RESULT_STR_YTS, RESULT_STR_EZTV, \
                                           RESULT_STR_TORLOCK, RESULT_STR_RARBG, RESULT_STR_ALL
-from tobrot.plugins.custom_utils import prefix_set, caption_set, template_set, theme_set, anilist_set
+from tobrot.plugins.custom_utils import prefix_set, caption_set, template_set, theme_set, anilist_set, user_log_set, log_chat_id
 from tobrot.plugins.url_parser import url_parser
 from tobrot.helper_funcs.bot_commands import BotCommands
 from tobrot.database.db_func import DatabaseManager
 from tobrot.plugins.choose_rclone_config import rclone_command_f
 from tobrot.plugins.custom_thumbnail import clear_thumb_nail, save_thumb_nail
 from tobrot.plugins.incoming_message_fn import g_clonee, g_yt_playlist, incoming_message_f, incoming_purge_message_f, \
-                                               incoming_youtube_dl_f, rename_tg_file
+                                               incoming_youtube_dl_f, rename_tg_file, auto_callback
 from tobrot.plugins.help_func import help_message_f, stats, user_settings, settings_callback, picture_add, pictures, pics_callback
 from tobrot.plugins.speedtest import get_speed
 from tobrot.plugins.mediainfo import mediainfo
@@ -86,10 +87,8 @@ botcmds = [
 async def start(client, message):
     """/start command"""
     buttons = [
-            [
-                InlineKeyboardButton('🚦 Bot Stats 🚦', url='https://t.me/FXTorrentz/28'),
-                InlineKeyboardButton('🛃 FX Group 🛃', url='https://t.me/+BgIhdNizM61jOGNl'),
-            ]
+            [InlineKeyboardButton(START_BTN1, url=START_URL1),
+            InlineKeyboardButton(START_BTN2, url=START_URL2)]
             ]
     reply_markup=InlineKeyboardMarkup(buttons)
     u_men = message.from_user.mention
@@ -127,8 +126,7 @@ async def clean_all():
     except FileNotFoundError:
         pass
 
-async def restart(client, message:Message):
-    ## Inspired from HuzunluArtemis Restart & HEROKU Utils
+async def restart(client: Client, message: Message):
     if message.from_user.id != OWNER_ID and message.from_user.id not in SUDO_USERS:
         return
     cmd = message.text.split(' ', 1)
@@ -194,38 +192,41 @@ if __name__ == "__main__":
     curr = datetime.now(timezone(TIMEZONE))
     date = curr.strftime('%d %B, %Y')
     time = curr.strftime('%I:%M:%S %p')
-    if opath.isfile(".restartmsg"):
-        with open(".restartmsg") as f:
-            chat_id, msg_id = map(int, f)
-        for a in app:
-            a.edit_message_text("Restarted & Updated Successfully!", chat_id, msg_id)
-        oremove(".restartmsg")
-    elif OWNER_ID:
-        try:
-            text = f'''<b>Bᴏᴛ Rᴇsᴛᴀʀᴛᴇᴅ !!</b>
+    rst_text = f'''<b>Bᴏᴛ Rᴇsᴛᴀʀᴛᴇᴅ !!</b>
 
 <b>📆 𝘿𝙖𝙩𝙚 :</b> <code>{date}</code> 
 <b>⏰ 𝙏𝙞𝙢𝙚 :</b> <code>{time}</code>
 <b>🚧 𝙏𝙞𝙢𝙚𝙕𝙤𝙣𝙚 :</b> <code>{TIMEZONE}</code>
 
 <b>ℹ️ 𝙑𝙚𝙧𝙨𝙞𝙤𝙣 :</b> <code>{__version__}</code>'''
-            if RDM_QUOTE:
+    if opath.isfile(".restartmsg"):
+        with open(".restartmsg") as f:
+            chat_id, msg_id = map(int, f)
+        for a in app:
+            a.edit_message_text(chat_id, msg_id, rst_text, disable_web_page_preview=True)
+        oremove(".restartmsg")
+    elif OWNER_ID:
+        if RDM_QUOTE:
+            try:
+                qResponse = rget("https://quote-garden.herokuapp.com/api/v3/quotes/random")
+                if qResponse.status_code == 200:
+                    qData = qResponse.json() 
+                    qText = qData['data'][0]['quoteText']
+                    qAuthor = qData['data'][0]['quoteAuthor']
+                    #qGenre = qData['data'][0]['quoteGenre']
+                    text += f"\n\n📬 𝙌𝙪𝙤𝙩𝙚 :\n\n<b>{qText}</b>\n\n🏷 <i>By {qAuthor}</i>"
+            except Exception as q:
+                LOGGER.error("Quote API Error : {q}")
+        for chatx in AUTH_CHANNEL:
+            for a in app:
                 try:
-                    qResponse = rget("https://quote-garden.herokuapp.com/api/v3/quotes/random")
-                    if qResponse.status_code == 200:
-                        qData = qResponse.json() 
-                        qText = qData['data'][0]['quoteText']
-                        qAuthor = qData['data'][0]['quoteAuthor']
-                        #qGenre = qData['data'][0]['quoteGenre']
-                        text += f"\n\n📬 𝙌𝙪𝙤𝙩𝙚 :\n\n<b>{qText}</b>\n\n🏷 <i>By {qAuthor}</i>"
-                except Exception as q:
-                    LOGGER.info("Quote API Error : {q}")
-            if AUTH_CHANNEL:
-                for i in AUTH_CHANNEL:
-                    for a in app:
-                        a.send_message(chat_id=i, text=text, parse_mode=enums.ParseMode.HTML)
-        except Exception as e:
-            LOGGER.warning(e)
+                    a.send_message(chat_id=int(chatx), text=rst_text, parse_mode=enums.ParseMode.HTML)
+                except ChannelInvalid:
+                    LOGGER.warning(f'Make Sure the Bot is Added to Chat ID : {chatx}')
+                except PeerIdInvalid:
+                    LOGGER.warning(f'Make Sure the Chat ID is Valid ( Multiple Chat ID are Separated by single Space ), Chat ID : {chatx}')
+                except Exception as e:
+                    LOGGER.error(e)
     if SET_BOT_COMMANDS.lower() == "true":
         for a in app:
             a.set_bot_commands(botcmds)
@@ -246,20 +247,21 @@ if __name__ == "__main__":
     # Command Initialize >>>>>>>>
     for a in app:
         username = (a.get_me()).username
-        a.add_handler(MessageHandler(
-            incoming_message_f,
-            filters=filters.command([
+        if AUTO_LEECH:
+            a.add_handler(MessageHandler(incoming_message_f, filters=filters.regex(r"^(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))") & filters.chat(chats=AUTH_CHANNEL)))
+        else:
+            a.add_handler(MessageHandler(
+                incoming_message_f,
+                filters=filters.command([
                     BotCommands.LeechCommand, f"{BotCommands.LeechCommand}@{username}",
                     BotCommands.ArchiveCommand, f"{BotCommands.ArchiveCommand}@{username}",
                     BotCommands.ExtractCommand, f"{BotCommands.ExtractCommand}@{username}",
                     GLEECH_COMMAND, f"{GLEECH_COMMAND}@{username}",
                     GLEECH_UNZIP_COMMAND, f"{GLEECH_UNZIP_COMMAND}@{username}",
                     GLEECH_ZIP_COMMAND, f"{GLEECH_ZIP_COMMAND}@{username}",
-                ])
-            & filters.chat(chats=AUTH_CHANNEL),
-        ))
-        if AUTO_LEECH:
-            a.add_handler(MessageHandler(incoming_message_f, filters=filters.text & filters.chat(chats=AUTH_CHANNEL)))
+                    ])
+                & filters.chat(chats=AUTH_CHANNEL),
+            ))
         a.add_handler(MessageHandler(down_load_media_f, filters=filters.command([TELEGRAM_LEECH_COMMAND, f"{TELEGRAM_LEECH_COMMAND}@{username}", TELEGRAM_LEECH_UNZIP_COMMAND, f"{TELEGRAM_LEECH_UNZIP_COMMAND}@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(incoming_purge_message_f, filters=filters.command(["purge", f"purge@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(g_clonee, filters=filters.command([f"{BotCommands.GCloneCommand}", f"{BotCommands.GCloneCommand}@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
@@ -293,13 +295,16 @@ if __name__ == "__main__":
         a.add_handler(MessageHandler(template_set, filters=filters.command(["set_template", f"set_template@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(index_scrape, filters=filters.command([f"{INDEX_SCRAPE}", f"{INDEX_SCRAPE}@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(theme_set, filters=filters.command([f"choosetheme", f"choosetheme@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
-        a.add_handler(MessageHandler(user_settings, filters=filters.command([f"currsettings", f"currsettings@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
+        a.add_handler(MessageHandler(user_settings, filters=filters.command([f"usersettings", f"usersettings@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(get_anime_query, filters=filters.command(["ani", f"ani@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(anilist_set, filters=filters.command(["anime_template", f"anime_template@{username}"]) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(nyaa_search, filters=filters.command(['nyaasi', f'nyaasi@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(nyaa_search_sukebei, filters=filters.command(['sukebei', f'sukebei@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(picture_add, filters=filters.command(['addpic', f'addpic@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
         a.add_handler(MessageHandler(pictures, filters=filters.command(['pics', f'pics@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
+        #a.add_handler(MessageHandler(set_configvar, filters=filters.command(['setvar', f'setvar@{username}']) & filters.chat(chats=AUTH_CHANNEL) & filters.private))
+        a.add_handler(MessageHandler(user_log_set, filters=filters.command(['userlog', f'userlog@{username}']) & filters.chat(chats=AUTH_CHANNEL)))
+        a.add_handler(MessageHandler(log_chat_id, filters=filters.command(['id', f'id@{username}']) & filters.channel))
         for tcom, value in torrents_dict.items():
             a.add_handler(MessageHandler(TorrentSearch(tcom, value['source'], value['result_str']).find, filters.command([tcom, f'{tcom}@{username}'])))
             a.add_handler(CallbackQueryHandler(TorrentSearch(tcom, value['source'], value['result_str']).previous, filters.regex(f"{tcom}_previous")))
@@ -308,7 +313,8 @@ if __name__ == "__main__":
 
         a.add_handler(CallbackQueryHandler(anilist_callbackquery, filters=filters.regex(pattern="^(tags|stream|reviews|relations|characters|home)")))
         a.add_handler(CallbackQueryHandler(imdb_callback, filters=filters.regex(pattern="^imdb")))
-        a.add_handler(CallbackQueryHandler(settings_callback, filters=filters.regex(pattern="^showthumb")))
+        a.add_handler(CallbackQueryHandler(auto_callback, filters=filters.regex(pattern="^alx")))
+        a.add_handler(CallbackQueryHandler(settings_callback, filters=filters.regex(pattern="^set")))
         a.add_handler(CallbackQueryHandler(pics_callback, filters=filters.regex(pattern="^pic")))
         a.add_handler(CallbackQueryHandler(nyaa_nop, filters=filters.regex(pattern="nyaa_nop")))
         a.add_handler(CallbackQueryHandler(nyaa_callback, filters=filters.regex(pattern="nyaa_back|nyaa_next")))
@@ -328,4 +334,6 @@ if __name__ == "__main__":
 
     for a in app:
         a.stop()
-    if STRING_SESSION: userBot.stop()
+    if STRING_SESSION: 
+        userBot.stop()
+        logging.info("UserBot Stopped !!")

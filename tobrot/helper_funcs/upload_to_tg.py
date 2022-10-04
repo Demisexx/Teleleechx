@@ -29,7 +29,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from tobrot import DESTINATION_FOLDER, DOWNLOAD_LOCATION, EDIT_SLEEP_TIME_OUT, INDEX_LINK, VIEW_LINK, LOGGER, \
                    TG_MAX_FILE_SIZE, UPLOAD_AS_DOC, CAP_STYLE, CUSTOM_CAPTION, user_specific_config, LEECH_LOG, \
                    EXCEP_CHATS, EX_LEECH_LOG, BOT_PM, TG_PRM_FILE_SIZE, PRM_USERS, PRM_LOG, isUserPremium, AUTH_CHANNEL, \
-                   UPDATES_CHANNEL
+                   UPDATES_CHANNEL, SPLIT_SIZE, USER_LOGS
 if isUserPremium:
     from tobrot import userBot
 from tobrot.bot_theme.themes import BotTheme
@@ -46,26 +46,17 @@ def getFolderSize(p):
         for f in map(prepend, listdir(p))
     )
 
-async def upload_to_tg(
-    message,
-    local_file_name,
-    from_user,
-    dict_contatining_uploaded_files,
-    client,
-    edit_media=False,
-    yt_thumb=None,
-):
+async def upload_to_tg(message, local_file_name, from_user, dict_contatining_uploaded_files, client, edit_media=False, yt_thumb=None):
+    global SPLIT_SIZE, CUSTOM_CAPTION
     base_file_name = opath.basename(local_file_name)
     file_size = opath.getsize(local_file_name)
+    #duration = #Do Something
 
     caption_str = ""
-    DEF_CAPTION_MSG = f"<{CAP_STYLE}>{base_file_name}</{CAP_STYLE}>"
-
     caption = CAP_DICT.get(from_user, "")
-    CUSTOM_CAPTION = caption 
 
-    if CUSTOM_CAPTION != "":
-        slit = CUSTOM_CAPTION.split("#")
+    if caption != "":
+        slit = caption.split("#")
         CAP_ = slit[0]
         caption_str = CAP_.format(
             filename = base_file_name,
@@ -78,8 +69,10 @@ async def upload_to_tg(
                     caption_str = caption_str.replace(args[0], args[1], int(args[2]))
                 else:
                     caption_str = caption_str.replace(args[0], args[1])
+    elif CUSTOM_CAPTION != "":
+        caption_str = CUSTOM_CAPTION
     else:
-        caption_str = DEF_CAPTION_MSG
+        caption_str = f"<{CAP_STYLE}>{base_file_name}</{CAP_STYLE}>"
 
     IS_RETRT = bool(PRM_USERS and str(from_user) not in str(PRM_USERS))
     if opath.isdir(local_file_name):
@@ -105,6 +98,8 @@ async def upload_to_tg(
             )
     else:
         sizze = opath.getsize(local_file_name)
+        if not SPLIT_SIZE:
+            SPLIT_SIZE = 4194304000 if isUserPremium and (not IS_RETRT) else 2097152000
         if sizze > TG_MAX_FILE_SIZE and sizze < TG_PRM_FILE_SIZE and isUserPremium and (not IS_RETRT):
             LOGGER.info(f"User Type : Premium ({from_user})")
             sent_message = await upload_single_file(
@@ -120,23 +115,23 @@ async def upload_to_tg(
             if sent_message is None:
                 return
             dict_contatining_uploaded_files[opath.basename(local_file_name)] = sent_message.id
-        elif opath.getsize(local_file_name) > TG_MAX_FILE_SIZE:
+        elif sizze > TG_MAX_FILE_SIZE:
             LOGGER.info(f"User Type : Non Premium ({from_user})")
             i_m_s_g = await message.reply_text(
-                "<b><i>📑Telegram doesn't Support Uploading this File.</i></b>\n"
-                f"<b><i>🎯Detected File Size: {humanbytes(opath.getsize(local_file_name))} </i></b>\n"
-                "\n<code>🗃 Trying to split the files . . .</code>"
+                "<b><i>📑 Telegram doesn't Support Uploading this File.</i></b>\n"
+                f"<b><i>🎯 File Size :</i></b> {humanbytes(opath.getsize(local_file_name))}\n"
+                "\n<code>🗃 Trying to Split the files ...</code>"
             )
-            splitted_dir = await split_large_files(local_file_name)
+            splitted_dir = await split_large_files(local_file_name, int(SPLIT_SIZE))
             totlaa_sleif = listdir(splitted_dir)
             totlaa_sleif.sort()
             number_of_files = len(totlaa_sleif)
             LOGGER.info(totlaa_sleif)
             ba_se_file_name = opath.basename(local_file_name)
             await i_m_s_g.edit_text(
-                f"<b><i>📨 Detected File Size: {humanbytes(sizze)}</i></b> \n"
-                f"📬<code>{ba_se_file_name}</code><i><b> splitted into {number_of_files} Files🗃.</b></i>\n"
-                "<i><b>📤Trying to upload to Telegram📤, Now...</b></i>"
+                f"📬 <b>FileName : </b> <code>{ba_se_file_name}</code>\n\n"
+                f"🎯 <b>File Size :</b> <code>{humanbytes(sizze)}</code>\n"
+                f"🗂 <b>Total Splitted Parts :</b> {number_of_files}"
             )
             for le_file in totlaa_sleif:
                 await upload_to_tg(
@@ -177,8 +172,10 @@ async def upload_to_gdrive(file_upload, message, messa_ge, g_id):
     if opath.exists("rclone.conf"):
         with open("rclone.conf", "r+") as file:
             con = file.read()
-            gUP = findall(r"\[(.*)\]", con)[0]
-            LOGGER.info(gUP)
+            try:
+                gUP = findall(r"\[(.*)\]", con)[0]
+            except Exception as e:
+                LOGGER.warning(f"[GClone] Make sure you have Set up the Name for the RClone Config Section. Error : {e}")
     destination = str(DESTINATION_FOLDER)
     file_upload = str(Path(file_upload).resolve())
     LOGGER.info(file_upload)
@@ -250,7 +247,6 @@ async def upload_to_gdrive(file_upload, message, messa_ge, g_id):
             f"{gUP}:{tt}",
             "-v",
         ]
-        LOGGER.info(t_am)
         tmp = await create_subprocess_exec(
             *t_am, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )
@@ -421,6 +417,7 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
         EXCEP_CHATS = AUTH_CHANNEL
         LOGGER.info("[IDLE] Switching AUTH_CHANNEL to EXCEP_CHATS")
 
+    log_chat = USER_LOGS.get(from_user, None)
     if UPLOAD_AS_DOC.lower() == "true" or __uploadAsDoc:
         thumb = None
         thumb_image_path = None
@@ -480,6 +477,18 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                         )
                 except Exception as err:
                     LOGGER.error(f"Failed To Send Document in Channel:\n{err}")
+        if log_chat:
+            try:
+                if prm_atv: await copyMedia(client, log_chat, None, sent_msg, caption_str)
+                else: await client.send_document(
+                    chat_id=log_chat,
+                    document=sent_message.document.file_id,
+                    thumb=thumb,
+                    caption=caption_str,
+                    parse_mode=enums.ParseMode.HTML
+                    )
+            except Exception as e:
+                LOGGER.error(f'Failed to Send Media to User Log Channel:{e}')
         if message.id != message_for_progress_display.id:
             try:
                 await message_for_progress_display.delete()
@@ -616,6 +625,19 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                                     )
                             except Exception as err:
                                 LOGGER.error(f"Failed To Send Video in Channel:\n{err}")
+                if log_chat:
+                    try:
+                        if prm_atv: await copyMedia(client, log_chat, None, send_msg, caption_str)
+                        else: await client.send_video(
+                                    chat_id=log_chat, 
+                                    video=sent_message.video.file_id,
+                                    thumb=thumb,
+                                    supports_streaming=True,
+                                    caption=caption_str,
+                                    parse_mode=enums.ParseMode.HTML
+                            )
+                    except Exception as err:
+                        LOGGER.error(f'Failed to Send Media to User Log Channel : {err}')
                 if thumb is not None:
                     oremove(thumb)
             elif local_file_name.upper().endswith(AUDIO_SUFFIXES):
@@ -778,11 +800,22 @@ async def upload_single_file(message, local_file_name, caption_str, from_user, c
                                     )
                             except Exception as err:
                                 LOGGER.error(f"Failed To Send Document in Channel:\n{err}")
+                if log_chat:
+                    try:
+                        if prm_atv: await copyMedia(client, log_chat, None, sent_msg, caption_str)
+                        else: await client.send_document(
+                                chat_id=log_chat,
+                                document=sent_message.document.file_id,
+                                thumb=thumb,
+                                caption=caption_str,
+                                parse_mode=enums.ParseMode.HTML
+                            )
+                    except Exception as e:
+                        LOGGER.error(f'Failed to Send Media to User Log Channel:{e}')
                 if thumb is not None:
                     oremove(thumb)
-
-        except MessageNotModified as oY:
-            LOGGER.info(oY)
+        except MessageNotModified:
+            pass
         except FloodWait as g:
             LOGGER.info(f"FloodWait : Sleeping {g.value}s")
             tsleep(g.value)
