@@ -58,8 +58,8 @@ def __changeFileName(to_upload_file, u_id):
     global CUSTOM_PREFIX, CUSTOM_SUFFIX
     preDicData = PRE_DICT.get(u_id, ["", "", "", 0, ""])
     prefix, filename_, suffix, no, filter = preDicData[0], preDicData[1], preDicData[2], preDicData[3], preDicData[4]
-    if not CUSTOM_PREFIX: CUSTOM_PREFIX = prefix
-    if not CUSTOM_SUFFIX: CUSTOM_SUFFIX = suffix
+    if CUSTOM_PREFIX: prefix = CUSTOM_PREFIX
+    if CUSTOM_SUFFIX: suffix = CUSTOM_SUFFIX
     if filter:
         if not filter.startswith("|"):
             filter = f"|{filter}"
@@ -97,32 +97,32 @@ def __changeFileName(to_upload_file, u_id):
                     n += 1
                     n_name = f"{root}/{filename_.format(no = '%.2d' % n)}"
                     orename(p_name, n_name)
-    elif CUSTOM_PREFIX:
+    elif prefix:
         if opath.isfile(to_upload_file):
-            if not to_upload_file.startswith(CUSTOM_PREFIX):
-                orename(to_upload_file, f"{CUSTOM_PREFIX}{to_upload_file}")
-                to_upload_file = f"{CUSTOM_PREFIX}{to_upload_file}"
+            if not to_upload_file.startswith(prefix):
+                orename(to_upload_file, f"{prefix}{to_upload_file}")
+                to_upload_file = f"{prefix}{to_upload_file}"
         else:
             for root, _, files in owalk(to_upload_file):
                 for org in files:
                     p_name = f"{root}/{org}"
-                    if not org.startswith(CUSTOM_PREFIX):
-                        n_name = f"{root}/{CUSTOM_PREFIX}{org}"
+                    if not org.startswith(prefix):
+                        n_name = f"{root}/{prefix}{org}"
                         orename(p_name, n_name)
-    elif CUSTOM_SUFFIX:
+    elif suffix:
      # <!--- Total Code Made by 5MysterySD, Give Credits at least !! --->
-        sufLen = len(CUSTOM_SUFFIX)
+        sufLen = len(suffix)
         if opath.isfile(to_upload_file):
             fileDict = to_upload_file.split('.')
             _extIn = 1 + len(fileDict[-1])
             _extOutName = '.'.join(fileDict[:-1]).replace('.', '_').replace('-', '_')
-            if not _extOutName.endswith(CUSTOM_SUFFIX):
-                _extOutName += CUSTOM_SUFFIX
-                _newExtFileName = f"{_extOutName}{CUSTOM_SUFFIX}.{fileDict[-1]}"
+            if not _extOutName.endswith(suffix):
+                _extOutName += suffix
+                _newExtFileName = f"{_extOutName}{suffix}.{fileDict[-1]}"
                 if len(_extOutName) > (64 - (sufLen + _extIn)):
                     _newExtFileName = (
                         _extOutName[: 64 - (sufLen + _extIn)]
-                        + f"{CUSTOM_SUFFIX}.{fileDict[-1]}"
+                        + f"{suffix}.{fileDict[-1]}"
                     )
 
                 orename(to_upload_file, _newExtFileName)
@@ -134,11 +134,11 @@ def __changeFileName(to_upload_file, u_id):
                     fileDict = org.split('.')
                     _extIn = 1 + len(fileDict[-1])
                     _extOutName = '.'.join(fileDict[:-1]).replace('.', '_').replace('-', '_')
-                    if not _extOutName.endswith(CUSTOM_SUFFIX):
-                        _extOutName += CUSTOM_SUFFIX
-                        _newExtFileName = f"{root}/{_extOutName}{CUSTOM_SUFFIX}.{fileDict[-1]}"
+                    if not _extOutName.endswith(suffix):
+                        _extOutName += suffix
+                        _newExtFileName = f"{root}/{_extOutName}{suffix}.{fileDict[-1]}"
                         if len(_extOutName) > (64 - (sufLen + _extIn)):
-                            _newExtFileName = f"{root}/{_extOutName[:64 - (sufLen + _extIn)]}{CUSTOM_SUFFIX}.{fileDict[-1]}"
+                            _newExtFileName = f"{root}/{_extOutName[:64 - (sufLen + _extIn)]}{suffix}.{fileDict[-1]}"
 
                         orename(p_name, _newExtFileName)
     return to_upload_file
