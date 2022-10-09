@@ -214,7 +214,9 @@ STRING_SESSION = getVar("STRING_SESSION", "")
 #Bot Command [IMDB]  >>>>>>>>>>>
 CUSTOM_CAPTION = getVar("CUSTOM_CAPTION", "")
 MAX_LIST_ELM = getVar("MAX_LIST_ELM", 4)
-DEF_IMDB_TEMPLATE = getVar("IMDB_TEMPLATE", '''<b>Title: </b> {title} [{year}]
+DEF_IMDB_TEMPLATE = getVar("IMDB_TEMPLATE", "")
+if DEF_IMDB_TEMPLATE == "":
+    DEF_IMDB_TEMPLATE = '''<b>Title: </b> {title} [{year}]
 <b>Also Known As:</b> {aka}
 <b>Rating ⭐️:</b> <i>{rating}</i>
 <b>Release Info: </b> <a href="{url_releaseinfo}">{release_date}</a>
@@ -225,7 +227,7 @@ DEF_IMDB_TEMPLATE = getVar("IMDB_TEMPLATE", '''<b>Title: </b> {title} [{year}]
 
 <b>Story Line: </b><code>{plot}</code>
 
-<a href="{url_cast}">Read More ...</a>''')
+<a href="{url_cast}">Read More ...</a>'''
 DEF_ANILIST_TEMPLATE = getVar("ANILIST_TEMPLATE", """<b>{ro_title}</b>({na_title})
 <b>Format</b>: <code>{format}</code>
 <b>Status</b>: <code>{status}</code>
