@@ -1,4 +1,4 @@
-FROM 412314/mltb:heroku
+FROM 412314/z-mirror:heroku
 
 RUN mkdir ./app
 RUN chmod 777 ./app
