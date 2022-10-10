@@ -18,30 +18,35 @@ class TXStyle:
     CAPTION_MSG = "⚡️<i><b>Custom Caption Set Successfully</b></i> ⚡️ \n\n👤 <b>User :</b> {u_men}\n🆔 <b>User ID :</b> <code>{uid}</code>\n🗃 <b>Caption :</b>\n<code>{t}</code>"
     IMDB_MSG = "⚡️<i><b>Custom Template Set Successfully</b></i> ⚡️ \n\n👤 <b>User :</b> {u_men}\n🆔 <b>User ID :</b> <code>{uid}</code>\n🗃 <b>IMDB Template :</b> \n<code>{t}</code>"
     THEME_MSG = "⚡️ <i><b>Available Custom Themes</b></i> ⚡️\n\n👤 <b>User :</b> {u_men}\n🆔 <b>User ID :</b> <code>{uid}</code>\n\n🗄 <b>Choose Available Theme from Below:</b>"
-    STATS_MSG_1 = '┏━━━━ 📊 𝗕𝗼𝘁 𝗦𝘁𝗮𝘁𝘀 📊 ━━━━━╻\n'
-    STATS_MSG_2 = '┣ 📝 <b>Commit Date:</b> {lc}\n┃\n'
-    STATS_MSG_3 = '''┣ 🤖 <b>Bot Uptime:</b> {ct}\n'
-┣ 📶 <b>OS Uptime:</b> {osUp}
-┃
-┣ 🗄 <b>Total Disk Space:</b> {t}
-┣ 📇 <b>Used:</b> {u} | 🛒 <b>Free:</b> {f}
-┃
-┣ 📤 <b>Upload:</b> {s}
-┣ 📥 <b>Download:</b> {r}
-┃
-┣ 🚦 <b>CPU:</b> {cpu}%
-┣ 🧬 <b>RAM:</b> {mem}%
-┣ 🗃 <b>DISK:</b> {di}%
-┃
-┣ 📄 <b>Physical Cores:</b> {p_co}
-┣ 📑 <b>Total Cores:</b> {t_co}
-┃
-┣ 🔁 <b>SWAP:</b> {swap_t} | 🔀 <b>Used:</b> {swap_p}%
-┣ 📫 <b>Memory Total:</b> {mem_t}
-┣ 📭 <b>Memory Free:</b> {mem_a}
-┣ 📬 <b>Memory Used:</b> {mem_u}
-┃
-┗━♦️ℙ𝕠𝕨𝕖𝕣𝕖𝕕 𝔹𝕪 {UPDATES_CHANNEL}♦️━╹'''
+    STATS_MSG_1 = '╭──── 📊 𝗕𝗼𝘁 𝗦𝘁𝗮𝘁𝘀 📊 ─────╮\n│\n'
+    STATS_MSG_2 = '├ 📝 <b>Commit Date:</b> {lc}\n│\n'
+    STATS_MSG_3 = '''├ 🤖 <b>Bot Uptime:</b> {currentTime}
+├ 📶 <b>OS Uptime:</b> {osUptime}
+│
+├ 🚦<b>ᴄᴘᴜ:</b>
+│  ┗ <code>{cpu_prog} {cpuUsage}%</code>
+│
+├ 🧬 <b>ʀᴀᴍ:</b>
+│  ┗ <code>{mem_prog} {mem_p}%</code>
+├  • <i><b>Total:</b> {mem_t}</i> │ • <i><b>Used:</b> {mem_u}</i>
+│                • <i><b>Free:</b> {mem_a}</i>
+│
+├ 🗃 <b>ᴅɪsᴋ:</b>
+│  ┗ <code>{disk_prog} {disk}%</code>
+├  • <i><b>Total:</b> {total}</i> │ • <i><b>Used:</b> {used}</i>
+│                • <i><b>Free:</b> {free}</i>
+│
+├ 🔁 <b>sᴡᴀᴘ:</b>
+│  ┗ <code>{swap_prog} {swap_p}%</code>
+├  • <i><b>Total:</b> {swap_t}</i> │ • <i><b>Used:</b> {swap_u}</i>
+│                • <i><b>Free:</b> {swap_f}</i>
+│
+├ 🗄 <b>ᴄᴏʀᴇs:</b>
+│  ┗ <code>{core_prog} {core_per}%</code>
+├ 📄 <i><b>Physical Cores:</b> {p_core}</i> │ 📑 <i><b>Total Cores:</b> {t_core}</i>
+│
+├ 📤 <b>Total Upload Data :</b> {sent}
+╰ 📥 <b>Total Download Data :</b> {recv}'''
     HELP_MSG = '''┏━ 🆘 <b>HELP MODULE</b> 🆘 ━━━╻
 ┃
 ┃• <i>Open Help to Get Tips and Help</i>
