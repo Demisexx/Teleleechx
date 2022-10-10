@@ -292,10 +292,10 @@ async def settings_callback(client, query: CallbackQuery):
 
 async def picture_add(client: Client, message: Message):
     '''/addpic command'''
-    editable = await message.reply_text("Checking Input ...")
+    editable = await message.reply_text("Checking Input ...", quote=True)
     resm = message.reply_to_message
-    msg_text = resm.text
-    if msg_text:
+    if resm.text:
+        msg_text = resm.text
         if msg_text.startswith("http"):
             pic_add = msg_text.strip()
             await editable.edit("Adding your Link ...")
@@ -306,9 +306,9 @@ async def picture_add(client: Client, message: Message):
         await editable.edit("Uploading to te.legra.ph Server ...")
         df = await client.download_media(
             message=resm,
-            file_name=f'{DOWNLOAD_LOCATION}/thumbnails'
+            file_name=f'{DOWNLOAD_LOCATION}/thumbnails/'
         )
-        await editable.edit("`Uploading to te.legra.ph Please Wait....`")
+        await editable.edit("`Uploading to te.legra.ph Server, Please Wait...`")
         try:
             tgh_post = upload_file(df)
             pic_add = f'https://te.legra.ph{tgh_post[0]}'
@@ -317,10 +317,11 @@ async def picture_add(client: Client, message: Message):
         finally:
             oremove(df)
     else:
-        await editable.edit("Provide Some Photos!! Bruh Photo or DDL Links.")
+        await editable.edit("Reply to Any Valid Photo!! Or Provide Direct DL Links of Images.")
+        return
     PICS_LIST.append(pic_add)
     asleep(1.5)
-    await editable.edit("Added to Existing Random Pictures Status List!")
+    await editable.edit("<b><i>Added to Existing Random Pictures Status List!</i></b>")
 
 async def pictures(client: Client, message: Message):
     '''/pics command'''
